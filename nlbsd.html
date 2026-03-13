@@ -1662,6 +1662,41 @@
     document.getElementById("metricAcc").textContent = formatPct(acc * 100);
   }
 
+  async function autoLoadHostedNLBSD() {
+    const statusEl = document.getElementById("fileStatus");
+    const hostedPath = "/NLBSD_Metadata.csv";
+    statusEl.textContent = "Trying hosted " + hostedPath + "…";
+    statusEl.classList.remove("ready");
+
+    try {
+      const response = await fetch(hostedPath, { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error("HTTP " + response.status);
+      }
+      const csvText = await response.text();
+      Papa.parse(csvText, {
+        header: true,
+        dynamicTyping: false,
+        skipEmptyLines: true,
+        complete: function (results) {
+          const rows = results.data || [];
+          processData(rows);
+          statusEl.textContent = "Loaded hosted NLBSD_Metadata.csv (" + rows.length.toLocaleString() + " rows)";
+          statusEl.classList.add("ready");
+        },
+        error: function (err) {
+          console.error(err);
+          statusEl.textContent = "Failed to parse hosted NLBSD_Metadata.csv: " + err.message;
+          statusEl.classList.remove("ready");
+        }
+      });
+    } catch (err) {
+      console.warn("Auto-load of hosted NLBSD_Metadata.csv failed:", err);
+      statusEl.textContent = "Hosted NLBSD_Metadata.csv not found. Please use Load CSV.";
+      statusEl.classList.remove("ready");
+    }
+  }
+
   // File input handling
   document.getElementById("csvFileInput").addEventListener("change", function (e) {
     const file = e.target.files[0];
@@ -1735,13 +1770,14 @@
     }
   });
 
-  // Initialise metrics with empty dataset to avoid NaNs
+  // Initialise metrics with empty dataset to avoid NaNs, then try hosted CSV
   initProcessed();
   updateOverview();
   updateAgeCharts();
   updateAnodeCharts();
   updateEnergyCharts();
   updateMetricsSection();
+  autoLoadHostedNLBSD();
 </script>
 </body>
 </html>
