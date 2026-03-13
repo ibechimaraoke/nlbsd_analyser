@@ -2,1772 +2,1949 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>NL-Breast-Screening Mammography Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- Fonts & basic reset -->
+  <title>Breast Cancer AI — Dataset Analysis</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
+    :root {
+      --nlbs-blue: #3b8bd4;
+      --mx-coral: #d85a30;
+      --ng-red: #e24b4a;
+      --benign-blue: #3b8bd4;
+      --suspicious-red: #e24b4a;
+      --falsepos-amber: #ef9f27;
+      --tntc-darkred: #a32d2d;
+      --erpr-blue: #378add;
+      --card-bg: #ffffff;
+      --card-border: #e0e0e0;
+      --body-bg: #f5f6f8;
+      --text-main: #222222;
+      --text-muted: #666666;
+    }
+
     * {
       box-sizing: border-box;
     }
-    :root {
-      --bg: #f5f7fb;
-      --card-bg: #ffffff;
-      --card-border: #e2e6f0;
-      --text-main: #1f2933;
-      --text-muted: #6b7280;
-      --accent: #2563eb;
-      --accent-soft: #e0edff;
-      --normal-color: #3B8BD4;
-      --fp-color: #EF9F27;
-      --cancer-color: #E24B4A;
-      --shadow-soft: 0 8px 20px rgba(15, 23, 42, 0.05);
-      --radius-lg: 14px;
+
+    html {
+      scroll-behavior: smooth;
     }
-    html, body {
+
+    body {
       margin: 0;
-      padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--body-bg);
       color: var(--text-main);
     }
-    body {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+
+    a {
+      color: inherit;
+      text-decoration: none;
     }
-    .app-shell {
+
+    .layout {
       display: flex;
       min-height: 100vh;
     }
+
     .sidebar {
-      width: 260px;
-      min-width: 220px;
-      background: #0b1220;
-      color: #e5e7eb;
-      padding: 22px 18px;
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 220px;
+      background-color: #ffffff;
+      border-right: 1px solid #e0e0e0;
+      padding: 20px 16px;
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      z-index: 1000;
     }
-    .sidebar-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .logo-circle {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 20%, #93c5fd, #1d4ed8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 700;
+
+    .sidebar-title {
       font-size: 18px;
-      box-shadow: 0 8px 18px rgba(59, 130, 246, 0.55);
-    }
-    .app-title {
-      font-size: 16px;
-      font-weight: 600;
+      font-weight: 700;
+      margin-bottom: 16px;
       line-height: 1.3;
     }
-    .app-subtitle {
+
+    .sidebar-subtitle {
       font-size: 12px;
-      color: #9ca3af;
+      color: var(--text-muted);
+      margin-bottom: 20px;
     }
-    .nav-section-title {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #6b7280;
-      margin-bottom: 6px;
-    }
+
     .nav-list {
       list-style: none;
-      margin: 0;
       padding: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      font-size: 13px;
+      margin: 0;
+      flex: 1;
     }
+
     .nav-item {
-      border-radius: 999px;
-      padding: 7px 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .nav-link {
+      display: block;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #444;
+      transition: background-color 0.15s, color 0.15s;
       cursor: pointer;
-      color: #d1d5db;
-      border: 1px solid transparent;
     }
-    .nav-item span.nav-bullet {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #4b5563;
+
+    .nav-link:hover {
+      background-color: #f0f4fb;
+      color: var(--nlbs-blue);
     }
-    .nav-item.active {
-      background: rgba(59, 130, 246, 0.12);
-      border-color: rgba(59, 130, 246, 0.6);
-      color: #e5e7eb;
+
+    .nav-link.active {
+      background-color: #e4effb;
+      color: var(--nlbs-blue);
+      font-weight: 600;
     }
-    .nav-item.active span.nav-bullet {
-      background: #60a5fa;
-    }
-    .nav-item:hover {
-      background: rgba(31, 41, 55, 0.9);
-    }
+
     .sidebar-footer {
-      margin-top: auto;
       font-size: 11px;
-      color: #9ca3af;
-      border-top: 1px solid rgba(55, 65, 81, 0.7);
-      padding-top: 10px;
+      color: var(--text-muted);
+      margin-top: 16px;
     }
 
     .main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 18px 20px 28px;
-      gap: 18px;
-    }
-    .top-bar {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    .top-titles {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .top-titles h1 {
-      font-size: 20px;
-      margin: 0;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-    }
-    .top-titles p {
-      margin: 0;
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-    .file-input-wrapper {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--card-bg);
-      border-radius: 999px;
-      padding: 6px 10px 6px 6px;
-      border: 1px solid var(--card-border);
-      box-shadow: var(--shadow-soft);
-    }
-    .file-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      color: white;
-      border-radius: 999px;
-      padding: 7px 12px;
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .file-label-icon {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-    }
-    #csvFileInput {
-      display: none;
-    }
-    .file-status {
-      font-size: 12px;
-      color: var(--text-muted);
-      max-width: 260px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .file-status.ready {
-      color: #16a34a;
-      font-weight: 500;
-    }
-
-    .content-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.4fr);
-      gap: 16px;
-    }
-    @media (max-width: 1200px) {
-      .app-shell {
-        flex-direction: column;
-      }
-      .sidebar {
-        width: 100%;
-        flex-direction: row;
-        align-items: center;
-        gap: 18px;
-        overflow-x: auto;
-      }
-      .sidebar-footer {
-        display: none;
-      }
-      .main {
-        padding: 16px;
-      }
-    }
-    @media (max-width: 900px) {
-      .content-grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
-      .sidebar {
-        display: none;
-      }
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--card-border);
-      padding: 16px 18px 18px;
-      box-shadow: var(--shadow-soft);
-    }
-    .card-header {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 6px;
-      margin-bottom: 8px;
-    }
-    .card-title {
-      font-size: 16px;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-    }
-    .card-tag {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: #6b7280;
-      background: #f3f4f6;
-      padding: 3px 7px;
-      border-radius: 999px;
-      border: 1px solid #e5e7eb;
-    }
-    .card-body p {
-      margin: 0;
-      margin-bottom: 8px;
-      font-size: 13px;
-      color: var(--text-muted);
-      line-height: 1.45;
-    }
-    .card-body p strong {
-      color: var(--text-main);
-    }
-
-    .summary-cards {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-      margin-top: 10px;
-      margin-bottom: 12px;
-    }
-    @media (max-width: 800px) {
-      .summary-cards {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-    .summary-card {
-      background: #f9fafb;
-      border-radius: 12px;
-      padding: 10px;
-      border: 1px solid #e5e7eb;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .summary-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .summary-pill {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-    }
-    .summary-value {
-      font-size: 16px;
-      font-weight: 600;
-    }
-    .summary-sub {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .chart-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.6fr);
-      gap: 14px;
-      margin-top: 6px;
-    }
-    .chart-container {
-      position: relative;
+      margin-left: 220px;
+      padding: 24px 16px 32px;
       width: 100%;
-      min-height: 220px;
-    }
-    canvas {
-      width: 100% !important;
-      height: 100% !important;
-    }
-
-    .section {
-      scroll-margin-top: 80px;
-    }
-
-    .badge-legends {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 4px;
-    }
-    .legend-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: #f3f4f6;
-      border: 1px solid #e5e7eb;
-    }
-    .legend-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
+      justify-content: center;
     }
 
-    .metrics-grid {
+    .main-inner {
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .page-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .banner {
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .banner-success {
+      background-color: #e5f6e8;
+      border: 1px solid #b2e0b9;
+      color: #256b2a;
+    }
+
+    .banner-loading {
+      background-color: #fff8e1;
+      border: 1px solid #ffe0b2;
+      color: #8d6e13;
+    }
+
+    .section-card {
+      background-color: var(--card-bg);
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      padding: 18px 18px 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(15, 23, 42, 0.02);
+    }
+
+    .section-header {
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 4px;
+    }
+
+    .section-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .section-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.6fr);
-      gap: 16px;
-      align-items: stretch;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
       margin-top: 8px;
     }
-    @media (max-width: 900px) {
-      .metrics-grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-    .slider-group {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .slider-label-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-    input[type="range"] {
-      width: 100%;
-      accent-color: var(--accent);
-    }
-    .metric-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      margin-top: 4px;
-    }
-    .metric-table th,
-    .metric-table td {
-      padding: 4px 6px;
-      text-align: right;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    .metric-table th:first-child,
-    .metric-table td:first-child {
-      text-align: left;
-    }
-    .metric-table th {
-      font-weight: 600;
-      background: #f9fafb;
-    }
-    .metric-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      font-weight: 500;
+
+    .section-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 8px;
     }
 
-    .research-cards {
+    .section-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .section-grid-full {
+      margin-top: 8px;
+    }
+
+    .stat-row {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
-      margin-top: 10px;
+      margin-bottom: 10px;
     }
-    @media (max-width: 1100px) {
-      .research-cards {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-    .research-card {
-      background: #f9fafb;
-      border-radius: 12px;
+
+    .stat-card {
+      background-color: #f9fafb;
+      border-radius: 8px;
+      padding: 10px 12px;
       border: 1px solid #e5e7eb;
-      padding: 12px 12px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
     }
-    .research-tag {
+
+    .stat-card.nlbs {
+      border-top: 3px solid var(--nlbs-blue);
+    }
+
+    .stat-card.mx {
+      border-top: 3px solid var(--mx-coral);
+    }
+
+    .stat-label {
       font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: #6b7280;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
     }
-    .research-question {
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .stat-subvalue {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .file-inputs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+
+    .file-input-label {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .file-input {
+      display: inline-flex;
+      flex-direction: column;
+      font-size: 12px;
+    }
+
+    input[type="file"] {
+      font-size: 12px;
+      padding: 4px;
+      border-radius: 4px;
+      border: 1px solid #d1d5db;
+      background-color: #ffffff;
+      max-width: 240px;
+    }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      background-color: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      padding: 10px 10px 4px;
+    }
+
+    .chart-title {
       font-size: 14px;
       font-weight: 600;
+      margin-bottom: 4px;
+      color: #374151;
     }
-    .research-body {
-      font-size: 12px;
+
+    .chart-subtitle {
+      font-size: 11px;
       color: var(--text-muted);
-      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    .chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 280px;
+    }
+
+    .chart-wrapper-tall {
+      height: 320px;
+    }
+
+    .chart-wrapper-short {
+      height: 220px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 6px 0 2px;
+      font-size: 11px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background-color: #ffffff;
+      border: 1px solid #e5e7eb;
+    }
+
+    .legend-color {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(15, 23, 42, 0.15);
+    }
+
+    .legend-label {
+      white-space: nowrap;
+    }
+
+    .insight-box {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border-left: 4px solid var(--nlbs-blue);
+      background-color: #f1f5f9;
+      font-size: 13px;
+      font-style: italic;
+      color: #111827;
+    }
+
+    .insight-box.critical {
+      border-left-color: var(--ng-red);
+      background-color: #fef2f2;
+      color: #7f1d1d;
+    }
+
+    .insight-title {
+      font-weight: 600;
+      font-style: normal;
+      margin-bottom: 4px;
+      font-size: 13px;
     }
 
     .pill {
-      border-radius: 999px;
-      padding: 3px 7px;
-      font-size: 10px;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      border: 1px solid #e5e7eb;
-      color: #4b5563;
-      background: #f9fafb;
-    }
-
-    .chip-inline {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      padding: 2px 8px;
       border-radius: 999px;
-      padding: 3px 8px;
       font-size: 11px;
+      background-color: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+
+    .two-column-text {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .text-muted {
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .density-note,
+    .dose-note {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .research-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .research-card {
+      background-color: #f9fafb;
+      border-radius: 8px;
       border: 1px solid #e5e7eb;
-      background: #f9fafb;
-      color: #4b5563;
+      padding: 10px 12px;
+      font-size: 13px;
+      position: relative;
+    }
+
+    .research-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      border-radius: 8px 0 0 8px;
+      background-color: var(--nlbs-blue);
+    }
+
+    .research-card.border-blue::before {
+      background-color: var(--nlbs-blue);
+    }
+
+    .research-card.border-teal::before {
+      background-color: #14b8a6;
+    }
+
+    .research-card.border-coral::before {
+      background-color: var(--mx-coral);
+    }
+
+    .research-card.border-amber::before {
+      background-color: #f59e0b;
+    }
+
+    .research-question {
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .research-label {
+      font-weight: 600;
+    }
+
+    .research-text {
+      margin: 2px 0;
+    }
+
+    footer {
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: left;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .section-grid,
+      .section-grid-3,
+      .section-grid-2,
+      .research-grid,
+      .two-column-text {
+        grid-template-columns: 1fr;
+      }
+
+      .stat-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid #e0e0e0;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 12px;
+      }
+
+      .sidebar-title {
+        font-size: 16px;
+        margin-bottom: 0;
+      }
+
+      .sidebar-subtitle {
+        flex-basis: 100%;
+        margin-bottom: 4px;
+      }
+
+      .nav-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        flex: unset;
+      }
+
+      .nav-item {
+        margin-bottom: 0;
+      }
+
+      .sidebar-footer {
+        display: none;
+      }
+
+      .main {
+        margin-left: 0;
+        padding-top: 12px;
+      }
+
+      .page-title {
+        font-size: 20px;
+      }
     }
   </style>
-
-  <!-- PapaParse & Chart.js from CDN (without SRI for local dev to avoid integrity mismatch) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 </head>
 <body>
-<div class="app-shell">
-  <!-- Sidebar navigation -->
-  <aside class="sidebar">
-    <div>
-      <div class="sidebar-header">
-        <div class="logo-circle">NL</div>
-        <div>
-          <div class="app-title">Breast Screening</div>
-          <div class="app-subtitle">Mammography cohort explorer</div>
-        </div>
+  <div class="layout">
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-title">Breast Cancer AI — Dataset Analysis</div>
+        <div class="sidebar-subtitle">NLBS (Canada) vs Mammo‑MX (Mexico) vs Nigeria</div>
       </div>
-    </div>
-
-    <div>
-      <div class="nav-section-title">Sections</div>
       <ul class="nav-list">
-        <li class="nav-item active" data-target="section-overview">
-          <span class="nav-bullet"></span> Dataset overview
-        </li>
-        <li class="nav-item" data-target="section-age">
-          <span class="nav-bullet"></span> Age distribution
-        </li>
-        <li class="nav-item" data-target="section-equipment">
-          <span class="nav-bullet"></span> Equipment analysis
-        </li>
-        <li class="nav-item" data-target="section-energy">
-          <span class="nav-bullet"></span> Energy settings
-        </li>
-        <li class="nav-item" data-target="section-metrics">
-          <span class="nav-bullet"></span> Evaluation metrics
-        </li>
-        <li class="nav-item" data-target="section-research">
-          <span class="nav-bullet"></span> Research questions
-        </li>
+        <li class="nav-item"><a class="nav-link" href="#section1">1. Dataset Overview</a></li>
+        <li class="nav-item"><a class="nav-link" href="#section2">2. Age Distribution</a></li>
+        <li class="nav-item"><a class="nav-link" href="#section3">3. Cancer Labels</a></li>
+        <li class="nav-item"><a class="nav-link" href="#section4">4. Density & Equipment</a></li>
+        <li class="nav-item"><a class="nav-link" href="#section5">5. Nigeria Gap</a></li>
+        <li class="nav-item"><a class="nav-link" href="#section6">6. Research Questions</a></li>
       </ul>
-    </div>
-
-    <div class="sidebar-footer">
-      Designed for quick, interactive QA of the NL-Breast-Screening metadata when training mammography AI models.
-    </div>
-  </aside>
-
-  <!-- Main content -->
-  <main class="main">
-    <div class="top-bar">
-      <div class="top-titles">
-        <h1>NL-Breast-Screening Metadata Dashboard</h1>
-        <p>
-          Load <code>NLBSD_Metadata.csv</code> from your local folder to explore
-          case mix, age, equipment, and energy setting signals that may bias AI models.
-        </p>
+      <div class="sidebar-footer">
+        Load the CSV files below to activate the analysis. All processing happens in your browser.
       </div>
-      <div class="file-input-wrapper">
-        <label class="file-label" for="csvFileInput">
-          <span class="file-label-icon">📁</span>
-          <span>Load CSV</span>
-        </label>
-        <input type="file" id="csvFileInput" accept=".csv" />
-        <div id="fileStatus" class="file-status">
-          Waiting for <code>NLBSD_Metadata.csv</code>…
-        </div>
-      </div>
-    </div>
+    </aside>
 
-    <!-- SECTION 1: Dataset Overview -->
-    <section id="section-overview" class="section">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">1. Dataset overview</div>
-          <div class="card-tag">Class balance &amp; naive classifier</div>
-        </div>
-        <div class="card-body">
-          <p>
-            This section summarises how many images fall into each case type after deriving a
-            <span class="chip-inline"><strong>Case Type</strong> = Cancer / False Positive / Normal</span>
-            label from the original cancer and <em>hard to state negative</em> fields.
-            Understanding these base rates is essential, because models can appear accurate while completely
-            failing to detect rare cancers.
-          </p>
-          <p>
-            A naive model that always predicts <strong>&ldquo;Normal&rdquo;</strong> will score accuracy equal to
-            the proportion of non-cancer exams, yet has <strong>0% sensitivity</strong> and misses every cancer.
-            The cards and donut chart below make this failure mode visible before any AI training.
-          </p>
+    <main class="main">
+      <div class="main-inner">
+        <header>
+          <div class="page-title">Comparing Screening, Diagnostic, and Nigerian Reality</div>
+          <div class="page-subtitle">
+            Exploration of NLBS (Canadian screening) and Mammo‑MX (Mexican diagnostic) datasets, interpreted through the lens of Nigerian breast cancer epidemiology.
+          </div>
+        </header>
 
-          <div class="summary-cards">
-            <div class="summary-card">
-              <div class="summary-label">
-                <span class="summary-pill" style="background: linear-gradient(135deg,#4ade80,#16a34a);"></span>
-                Total images
+        <div id="loadingBanner" class="banner banner-loading" style="display:none;">
+          Parsing CSV files&hellip; please wait.
+        </div>
+        <div id="successBanner" class="banner banner-success">
+          Both datasets loaded — <span id="successCounts"></span>
+        </div>
+
+        <!-- SECTION 1 -->
+        <section id="section1" class="section-card">
+          <div class="section-header">
+            <h2 class="section-title">Two Datasets, Two Contexts</h2>
+            <p class="section-subtitle">Upload the NLBS Canada screening metadata and Mammo‑MX Mexico diagnostic metadata to unlock the full dashboard.</p>
+          </div>
+
+          <div class="file-inputs">
+            <div class="file-input">
+              <span class="file-input-label">Load NLBS Canada CSV</span>
+              <input type="file" id="nlbsInput" accept=".csv" />
+            </div>
+            <div class="file-input">
+              <span class="file-input-label">Load Mammo‑MX Mexico CSV</span>
+              <input type="file" id="mxInput" accept=".csv" />
+            </div>
+            <span id="fileStatus" class="text-muted"></span>
+          </div>
+
+          <div id="overviewStats" style="opacity:0.4; pointer-events:none;">
+            <div class="stat-row">
+              <div class="stat-card nlbs">
+                <div class="stat-label">Total NLBS images</div>
+                <div class="stat-value" id="nlbsTotal">–</div>
+                <div class="stat-subvalue">Canadian screening mammograms</div>
               </div>
-              <div id="statTotal" class="summary-value">–</div>
-              <div id="statTotalSub" class="summary-sub">Rows parsed</div>
-            </div>
-
-            <div class="summary-card">
-              <div class="summary-label">
-                <span class="summary-pill" style="background: var(--cancer-color);"></span>
-                Cancer
+              <div class="stat-card nlbs">
+                <div class="stat-label">Cancer confirmed</div>
+                <div class="stat-value" id="nlbsCancerCount">–</div>
+                <div class="stat-subvalue" id="nlbsCancerPct">Biopsy‑confirmed cancers</div>
               </div>
-              <div id="statCancer" class="summary-value">–</div>
-              <div id="statCancerSub" class="summary-sub">–</div>
-            </div>
-
-            <div class="summary-card">
-              <div class="summary-label">
-                <span class="summary-pill" style="background: var(--fp-color);"></span>
-                False positive
+              <div class="stat-card nlbs">
+                <div class="stat-label">False positive cases</div>
+                <div class="stat-value" id="nlbsFPCount">–</div>
+                <div class="stat-subvalue" id="nlbsFPPct">Hard‑to‑state negatives</div>
               </div>
-              <div id="statFP" class="summary-value">–</div>
-              <div id="statFPSub" class="summary-sub">–</div>
             </div>
 
-            <div class="summary-card">
-              <div class="summary-label">
-                <span class="summary-pill" style="background: var(--normal-color);"></span>
-                Normal
+            <div class="stat-row">
+              <div class="stat-card mx">
+                <div class="stat-label">Total Mammo‑MX images</div>
+                <div class="stat-value" id="mxTotal">–</div>
+                <div class="stat-subvalue">Mexican diagnostic mammograms</div>
               </div>
-              <div id="statNormal" class="summary-value">–</div>
-              <div id="statNormalSub" class="summary-sub">–</div>
-            </div>
-          </div>
-
-          <div class="chart-row">
-            <div class="chart-container">
-              <canvas id="overviewDonut"></canvas>
-            </div>
-            <div class="card" style="padding: 10px 12px; box-shadow:none; border-style:dashed;">
-              <div class="card-title" style="font-size:14px; margin-bottom: 4px;">Naive classifier thought experiment</div>
-              <p style="font-size:12px; margin-bottom: 4px;">
-                Suppose we deploy a system that always predicts <strong>&ldquo;Normal&rdquo;</strong>, ignoring
-                every imaging feature. Its sensitivity for cancer is 0%, but its accuracy will look deceptively high.
-              </p>
-              <table class="metric-table" style="margin-top:6px;">
-                <thead>
-                <tr>
-                  <th></th>
-                  <th>Value</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                  <td>Cancer prevalence</td>
-                  <td id="naiveCancerPrev">–</td>
-                </tr>
-                <tr>
-                  <td>Non‑cancer prevalence</td>
-                  <td id="naiveNonCancerPrev">–</td>
-                </tr>
-                <tr>
-                  <td>Naive sensitivity</td>
-                  <td>0%</td>
-                </tr>
-                <tr>
-                  <td>Naive specificity</td>
-                  <td>100%</td>
-                </tr>
-                <tr>
-                  <td><strong>Naive accuracy</strong></td>
-                  <td id="naiveAccuracy"><strong>–</strong></td>
-                </tr>
-                </tbody>
-              </table>
-              <p style="font-size:12px; margin-top:6px;">
-                In this dataset, that naive strategy would achieve accuracy equal to the proportion of non‑cancer cases
-                (shown above), while <strong>missing every cancer</strong> – a dramatic illustration of why accuracy
-                alone is clinically unsafe.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION 2: Age Distribution -->
-    <section id="section-age" class="section">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">2. Age distribution analysis</div>
-          <div class="card-tag">Case mix &amp; risk by age</div>
-        </div>
-        <div class="card-body">
-          <p>
-            Mammography screening spans a wide age range, and both cancer risk and reading behaviour change with age.
-            The grouped bars show the <strong>percentage of each age band</strong> that falls into cancer, false positive,
-            or normal categories, highlighting which groups dominate the dataset.
-          </p>
-          <p>
-            The rate curves then track how often cancer and false positives occur per age group, revealing that
-            <strong>cancer risk typically rises with age</strong> while false positives often peak in the middle
-            screening decades where breast density and recall thresholds interact.
-          </p>
-
-          <div class="badge-legends">
-            <span class="legend-pill"><span class="legend-dot" style="background:var(--cancer-color);"></span>Cancer</span>
-            <span class="legend-pill"><span class="legend-dot" style="background:var(--fp-color);"></span>False positive</span>
-            <span class="legend-pill"><span class="legend-dot" style="background:var(--normal-color);"></span>Normal</span>
-          </div>
-
-          <div class="chart-row" style="margin-top:10px;">
-            <div class="chart-container">
-              <canvas id="ageGroupBars"></canvas>
-            </div>
-            <div class="chart-container">
-              <canvas id="ageRatesCancer"></canvas>
-            </div>
-          </div>
-          <div class="chart-row" style="margin-top:10px;">
-            <div class="chart-container">
-              <canvas id="ageRatesFP"></canvas>
-            </div>
-            <div class="card" style="padding: 10px 12px; box-shadow:none; border-style:dashed;">
-              <div class="card-title" style="font-size:14px; margin-bottom: 4px;">Key insight</div>
-              <p style="font-size:12px;">
-                If the cancer rate steadily climbs across age bands while the false positive rate peaks in the
-                mid‑life screening window, AI systems must be evaluated <strong>within age strata</strong>. Otherwise,
-                performance could look good overall while masking poor detection in the youngest or oldest patients.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION 3: Equipment Analysis -->
-    <section id="section-equipment" class="section">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">3. Equipment analysis (RQ1)</div>
-          <div class="card-tag">Anode material &amp; case labels</div>
-        </div>
-        <div class="card-body">
-          <p>
-            Different anode target materials (<strong>RHODIUM, MOLYBDENUM, TUNGSTEN</strong>) change the X‑ray spectrum
-            and image appearance. If some hospitals or time periods favour particular anodes, AI models can
-            <strong>shortcut</strong> on equipment signatures instead of true lesion features.
-          </p>
-          <p>
-            The first chart counts how many cancer, false positive, and normal exams are associated with each anode,
-            while the stacked bars show what <strong>fraction of each anode&apos;s use</strong> ends in each outcome.
-            Marked differences in false positive proportion across materials would warrant deeper bias analysis.
-          </p>
-
-          <div class="badge-legends">
-            <span class="legend-pill"><span class="legend-dot" style="background:var(--cancer-color);"></span>Cancer</span>
-            <span class="legend-pill"><span class="legend-dot" style="background:var(--fp-color);"></span>False positive</span>
-            <span class="legend-pill"><span class="legend-dot" style="background:var(--normal-color);"></span>Normal</span>
-          </div>
-
-          <div class="chart-row" style="margin-top:10px;">
-            <div class="chart-container">
-              <canvas id="anodeCounts"></canvas>
-            </div>
-            <div class="chart-container">
-              <canvas id="anodeStacked"></canvas>
-            </div>
-          </div>
-
-          <p id="anodeInsight" style="font-size:12px; margin-top:10px;">
-            Once the CSV is loaded, this text will summarise whether false positive rates differ substantially across
-            anode materials, helping you decide if equipment configuration may be an important confounder.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION 4: Energy Settings -->
-    <section id="section-energy" class="section">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">4. Energy settings analysis (RQ2)</div>
-          <div class="card-tag">kVp vs. labels</div>
-        </div>
-        <div class="card-body">
-          <p>
-            Tube energy (in keV) affects image noise, contrast, and penetration, and may be chosen differently for
-            dense breasts, diagnostic work‑ups, or specific manufacturers. If cancers are systematically imaged at
-            different energies than normals, models can pick up <strong>energy shortcuts</strong> instead of lesion cues.
-          </p>
-          <p>
-            The &ldquo;box plot&rdquo; approximation summarises minimum, mean, and maximum energy by case type, while
-            the distribution chart shows how often each discrete energy value is used. Together they test whether
-            <strong>energy settings co‑vary with cancer status</strong> enough to require explicit debiasing.
-          </p>
-
-          <div class="chart-row" style="margin-top:10px;">
-            <div class="chart-container">
-              <canvas id="energySummary"></canvas>
-            </div>
-            <div class="chart-container">
-              <canvas id="energyDistribution"></canvas>
-            </div>
-          </div>
-
-          <p id="energyInsight" style="font-size:12px; margin-top:10px;">
-            After loading the CSV, this note will highlight whether cancer exams cluster at particular keV levels
-            compared with normal and false positive exams.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION 5: Evaluation Metrics -->
-    <section id="section-metrics" class="section">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">5. Evaluation metrics explainer</div>
-          <div class="card-tag">Sensitivity, specificity &amp; AUROC</div>
-        </div>
-        <div class="card-body">
-          <p>
-            In breast screening, <strong>missing cancers</strong> is far more harmful than recalling an extra normal
-            patient. This section lets you adjust a hypothetical model&rsquo;s sensitivity and see how specificity,
-            false positive rate, and false negative rate respond given the dataset&rsquo;s class distribution.
-          </p>
-          <p>
-            At <strong>0% sensitivity</strong> (a naive &ldquo;always normal&rdquo; model) accuracy equals the proportion
-            of non‑cancer exams – potentially high – but <strong>every cancer is missed</strong>. This motivates using
-            <strong>AUROC</strong> and reporting sensitivity at fixed specificity (for example 95%) rather than plain
-            accuracy when publishing results on this dataset.
-          </p>
-
-          <div class="metrics-grid">
-            <div class="slider-group">
-              <div class="slider-label-row">
-                <span>Model sensitivity to biopsy‑proven cancer</span>
-                <span id="sensitivityLabel">80%</span>
+              <div class="stat-card mx">
+                <div class="stat-label">Suspicious/malignant (B4+B5)</div>
+                <div class="stat-value" id="mxSuspCount">–</div>
+                <div class="stat-subvalue" id="mxSuspPct">Radiologist‑flagged suspicious or malignant</div>
               </div>
-              <input type="range" id="sensitivitySlider" min="0" max="100" value="80" />
-              <p style="font-size:12px; color:var(--text-muted);">
-                For illustration we assume that pushing sensitivity higher comes at an approximately linear cost
-                in specificity (a simplified ROC curve). The table shows the resulting confusion rates and overall
-                accuracy using your loaded cohort&apos;s cancer prevalence.
-              </p>
-
-              <table class="metric-table">
-                <thead>
-                <tr>
-                  <th>Metric</th>
-                  <th>Value</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                  <td>Cancer prevalence</td>
-                  <td id="metricCancerPrev">–</td>
-                </tr>
-                <tr>
-                  <td>Non‑cancer prevalence</td>
-                  <td id="metricNonCancerPrev">–</td>
-                </tr>
-                <tr>
-                  <td>Sensitivity (recall for cancer)</td>
-                  <td id="metricSens">–</td>
-                </tr>
-                <tr>
-                  <td>Specificity (true negative rate)</td>
-                  <td id="metricSpec">–</td>
-                </tr>
-                <tr>
-                  <td>False positive rate</td>
-                  <td id="metricFPR">–</td>
-                </tr>
-                <tr>
-                  <td>False negative rate</td>
-                  <td id="metricFNR">–</td>
-                </tr>
-                <tr>
-                  <td><strong>Accuracy</strong></td>
-                  <td id="metricAcc"><strong>–</strong></td>
-                </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div class="card" style="padding:10px 12px; box-shadow:none; border-style:dashed;">
-              <div class="card-title" style="font-size:14px; margin-bottom:4px;">Why AUROC &amp; sensitivity@spec?</div>
-              <p style="font-size:12px; margin-bottom:4px;">
-                Because cancer prevalence in screening cohorts is low (around 1–2% in NL‑like programmes), even a model
-                that misses many cancers can achieve apparently strong accuracy. Using AUROC captures how well the model
-                <strong>ranks</strong> cancers above normals across all thresholds.
-              </p>
-              <p style="font-size:12px;">
-                In deployment, however, radiologists must pick one operating point. Reporting
-                <span class="chip-inline"><strong>sensitivity at fixed specificity</strong></span>
-                (for example 95% or 97.5%) makes the trade‑off explicit: how many extra recalls we pay per cancer saved.
-                The slider above lets you explore these trade‑offs against your actual cohort mix.
-              </p>
+              <div class="stat-card mx">
+                <div class="stat-label">Benign/negative (B1–B3)</div>
+                <div class="stat-value" id="mxBenignCount">–</div>
+                <div class="stat-subvalue" id="mxBenignPct">Likely benign or negative studies</div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-    </section>
 
-    <!-- SECTION 6: Research Questions -->
-    <section id="section-research" class="section">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">6. Research questions &amp; open problems</div>
-          <div class="card-tag">Study design &amp; next steps</div>
-        </div>
-        <div class="card-body">
-          <p>
-            These cards crystallise three concrete research questions that arise from this metadata, each focusing on a
-            specific source of bias or design choice that matters when building clinical mammography AI systems.
-          </p>
-          <p>
-            For each, the &ldquo;why it matters&rdquo; line explains the clinical or methodological risk, and the
-            &ldquo;next step&rdquo; suggests analyses or extra data that would turn this dashboard exploration into a
-            publishable study.
-          </p>
+          <div class="insight-box" style="margin-top:14px;">
+            <div class="insight-title">Key insight &mdash; different clinical pipelines</div>
+            NLBS is a population screening dataset: asymptomatic Canadian women invited routinely, where only around 1.25% harbor cancer&mdash;a realistic screening prevalence.
+            Mammo‑MX is a diagnostic dataset: Mexican women who presented with symptoms or concerns, where roughly 14.4% of exams are suspicious or malignant.
+            An AI model trained purely on Mammo‑MX would be dangerously overconfident if deployed in a low‑prevalence screening program.
+          </div>
+        </section>
 
-          <div class="research-cards">
-            <div class="research-card">
-              <div class="research-tag">RQ1 · Equipment &amp; false positives</div>
+        <!-- SECTION 2 -->
+        <section id="section2" class="section-card">
+          <div class="section-header">
+            <h2 class="section-title">Who Are the Patients?</h2>
+            <p class="section-subtitle">Age structure and summary statistics, contrasted with Nigerian histopathology data from Effiong et al. (2025).</p>
+          </div>
+
+          <div class="section-grid">
+            <div>
+              <div class="chart-container">
+                <div class="chart-title">Age distribution across Canada, Mexico, and Nigeria</div>
+                <div class="chart-subtitle">Each bar shows the percentage of cases within that dataset falling into a given age band.</div>
+                <div class="chart-wrapper chart-wrapper-tall">
+                  <canvas id="ageGroupChart"></canvas>
+                </div>
+                <div id="ageGroupLegend" class="legend"></div>
+              </div>
+            </div>
+            <div>
+              <div class="chart-container">
+                <div class="chart-title">Approximate age spread by clinical label</div>
+                <div class="chart-subtitle">Box‑plot style summary using minimum, mean, and maximum age for key case types.</div>
+                <div class="chart-wrapper chart-wrapper-tall">
+                  <canvas id="ageBoxApproxChart"></canvas>
+                </div>
+                <div id="ageBoxLegend" class="legend"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="insight-box" style="margin-top:14px;">
+            Nigerian women develop breast cancer significantly younger than Canadian or Mexican patients: 46% of Nigerian cases arise between ages 20–39.
+            NLBS captures almost no women under 45, and Mammo‑MX still skews older than the Nigerian burden.
+            An AI model trained on NLBS has effectively never seen the age profile that dominates Nigerian breast cancer, risking under‑detection in younger patients.
+          </div>
+        </section>
+
+        <!-- SECTION 3 -->
+        <section id="section3" class="section-card">
+          <div class="section-header">
+            <h2 class="section-title">How Cancer Is Recorded Differs Critically</h2>
+            <p class="section-subtitle">NLBS uses biopsy‑confirmed binary labels; Mammo‑MX uses radiologist BIRADS assessment.</p>
+          </div>
+
+          <div class="section-grid">
+            <div>
+              <div class="chart-container">
+                <div class="chart-title">NLBS case types</div>
+                <div class="chart-subtitle">Normal screening exams, false positives, and biopsy‑confirmed cancers.</div>
+                <div class="chart-wrapper chart-wrapper-short">
+                  <canvas id="nlbsDonutChart"></canvas>
+                </div>
+                <div id="nlbsDonutLegend" class="legend"></div>
+              </div>
+              <div class="text-muted">
+                Binary label: cancer yes/no, biopsy confirmed; with a special subset of &ldquo;hard‑to‑state negatives&rdquo; that behave like false positives.
+              </div>
+            </div>
+
+            <div>
+              <div class="chart-container">
+                <div class="chart-title">Mammo‑MX BIRADS grading</div>
+                <div class="chart-subtitle">Radiologist BIRADS categories from incomplete (B0) to known malignant (B6).</div>
+                <div class="chart-wrapper chart-wrapper-short">
+                  <canvas id="biradsBarChart"></canvas>
+                </div>
+                <div id="biradsLegend" class="legend"></div>
+              </div>
+              <div class="text-muted">
+                Six‑level BIRADS scale is used globally and is richer than a binary label. However, B4 &ldquo;suspicious&rdquo; is not biopsy confirmed, and even some B5 exams may lack histology.
+              </div>
+            </div>
+          </div>
+
+          <div class="insight-box" style="margin-top:14px;">
+            <div class="insight-title">Label quality matters for AI</div>
+            NLBS uses the gold standard: biopsy confirmation.
+            Mammo‑MX uses BIRADS radiologist assessment&mdash;B4 and B5 cases may not all be confirmed cancers.
+            For AI training, such unconfirmed labels introduce noise: NLBS, despite having fewer suspicious cases, is more trustworthy for training a cancer‑detection model than a large but label‑noisy diagnostic cohort.
+          </div>
+        </section>
+
+        <!-- SECTION 4 -->
+        <section id="section4" class="section-card">
+          <div class="section-header">
+            <h2 class="section-title">What NLBS Is Missing</h2>
+            <p class="section-subtitle">Breast density, radiation dose, and X‑ray equipment configuration shape detectability&mdash;but NLBS omits key variables.</p>
+          </div>
+
+          <div class="section-grid">
+            <div>
+              <div class="chart-container">
+                <div class="chart-title">Breast density vs outcome (Mammo‑MX)</div>
+                <div class="chart-subtitle">Proportion of benign/negative vs suspicious/malignant exams in each density category (D1–D4).</div>
+                <div class="chart-wrapper chart-wrapper-tall">
+                  <canvas id="densityOutcomeChart"></canvas>
+                </div>
+                <div id="densityOutcomeLegend" class="legend"></div>
+              </div>
+              <div class="density-note">
+                NLBS does not record breast density at all, despite density being a key determinant of mammographic difficulty.
+              </div>
+            </div>
+
+            <div>
+              <div class="chart-container">
+                <div class="chart-title">Radiation dose by density (Mammo‑MX)</div>
+                <div class="chart-subtitle">Mean entrance dose (mGy) for each density category, illustrating how denser breasts require more radiation.</div>
+                <div class="chart-wrapper chart-wrapper-tall">
+                  <canvas id="doseByDensityChart"></canvas>
+                </div>
+                <div id="doseByDensityLegend" class="legend"></div>
+              </div>
+              <div class="dose-note">
+                NLBS does not record patient radiation dose, limiting safety and dose‑optimization analyses for screening programs.
+              </div>
+            </div>
+          </div>
+
+          <div class="section-grid-2">
+            <div>
+              <div class="chart-container">
+                <div class="chart-title">NLBS anode target material by case type</div>
+                <div class="chart-subtitle">Distribution of RHODIUM, MOLYBDENUM, and TUNGSTEN anode targets for normal, false positive, and cancer cases.</div>
+                <div class="chart-wrapper chart-wrapper-short">
+                  <canvas id="anodeCaseChart"></canvas>
+                </div>
+                <div id="anodeCaseLegend" class="legend"></div>
+              </div>
+            </div>
+            <div>
+              <div class="chart-container">
+                <div class="chart-title">NLBS energy settings by case type</div>
+                <div class="chart-subtitle">Distribution of tube potential (keV) for each case type.</div>
+                <div class="chart-wrapper chart-wrapper-short">
+                  <canvas id="energyCaseChart"></canvas>
+                </div>
+                <div id="energyCaseLegend" class="legend"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="insight-box" style="margin-top:14px;">
+            Breast density is one of the strongest predictors of mammography difficulty: dense breasts obscure tumors and are more common in younger, often non‑Western populations.
+            Nigerian women on average have higher breast density than Canadian women, yet no African mammography dataset currently records density explicitly.
+            Any AI screening tool for Nigeria must account for density and dose interactions, but this signal cannot be learned directly from NLBS.
+          </div>
+        </section>
+
+        <!-- SECTION 5 -->
+        <section id="section5" class="section-card">
+          <div class="section-header">
+            <h2 class="section-title">Neither Dataset Represents Nigerian Women</h2>
+            <p class="section-subtitle">Mortality, subtypes, and stage at diagnosis in Nigeria highlight a radically different clinical landscape.</p>
+          </div>
+
+          <div class="section-grid">
+            <div>
+              <div class="chart-container">
+                <div class="chart-title">Mortality‑to‑incidence ratio</div>
+                <div class="chart-subtitle">Closer to 1.0 means more deaths per case&mdash;worse outcomes.</div>
+                <div class="chart-wrapper chart-wrapper-short">
+                  <canvas id="mortalityRatioChart"></canvas>
+                </div>
+                <div id="mortalityRatioLegend" class="legend"></div>
+              </div>
+
+              <div class="chart-container" style="margin-top:10px;">
+                <div class="chart-title">Stage at diagnosis</div>
+                <div class="chart-subtitle">Nigeria vs Canada/Western settings: early (Stage I/II) vs late (Stage III/IV) presentation.</div>
+                <div class="chart-wrapper chart-wrapper-short">
+                  <canvas id="stageDonutChart"></canvas>
+                </div>
+                <div id="stageDonutLegend" class="legend"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="chart-container">
+                <div class="chart-title">Cancer subtype distribution</div>
+                <div class="chart-subtitle">Triple‑negative (TNBC) vs ER+/PR+ vs other subtypes in Nigeria compared with a Western average.</div>
+                <div class="chart-wrapper chart-wrapper-tall">
+                  <canvas id="subtypeChart"></canvas>
+                </div>
+                <div id="subtypeLegend" class="legend"></div>
+              </div>
+
+              <div class="text-muted">
+                Effiong et al. (2025) report 42.77% of immunohistochemically profiled Nigerian tumors are triple‑negative, far above Western averages.
+                Left‑sided disease is slightly more common than right‑sided (46.86% vs 44.41%), and invasive ductal carcinoma dominates.
+              </div>
+            </div>
+          </div>
+
+          <div class="insight-box critical" style="margin-top:14px;">
+            <div class="insight-title">The Nigeria gap</div>
+            Nigeria has one of the highest breast cancer mortality rates in Africa: 32,278 new cases and 16,332 deaths per year (mortality‑to‑incidence ratio 0.51).
+            Around 80% of cases present at late stage, and 42.77% of tumors are triple‑negative&mdash;the most aggressive, mammographically challenging subtype, concentrated in younger women.
+            Neither NLBS nor Mammo‑MX was designed to train an AI model for this reality, underscoring the need for Nigeria‑specific screening datasets and models.
+          </div>
+        </section>
+
+        <!-- SECTION 6 -->
+        <section id="section6" class="section-card">
+          <div class="section-header">
+            <h2 class="section-title">Open Research Problems</h2>
+            <p class="section-subtitle">Targeted questions linking NLBS, Mammo‑MX, and Nigerian gaps to concrete research directions in the VAC Lab.</p>
+          </div>
+
+          <div class="research-grid">
+            <div class="research-card border-blue">
               <div class="research-question">
-                Does anode material independently predict false positive rate beyond patient age?
+                Would an AI model trained on NLBS perform adequately on Nigerian patients given the age and subtype mismatch?
               </div>
-              <div class="research-body">
-                <strong>Why it matters:</strong> If certain anode spectra systematically produce more recalls at the same
-                age and case mix, AI models may learn <em>machine‑specific artefacts</em> and under‑perform when moved to
-                different vendors or protocols.<br/>
-                <strong>Next step:</strong> Fit a multivariable logistic regression or hierarchical model with
-                <em>false positive</em> vs. <em>non‑false positive</em> as outcome, and anode material, age band, and site
-                as predictors, then test whether anode effects remain significant after adjustment.
-              </div>
+              <p class="research-text"><span class="research-label">Why it matters:</span> Nigerian women present roughly 15 years younger, with TNBC‑dominant tumors, than the NLBS screening population.</p>
+              <p class="research-text"><span class="research-label">What data or method is needed:</span> Cross‑dataset evaluation and domain adaptation/transfer learning from NLBS to a Nigerian cohort with known outcomes.</p>
+              <p class="research-text"><span class="research-label">Connection to VAC Lab:</span> Extends the NLBS dataset paper directly by testing the generalizability of its models beyond the Canadian source population.</p>
             </div>
 
-            <div class="research-card">
-              <div class="research-tag">RQ2 · Energy as confounder</div>
+            <div class="research-card border-teal">
               <div class="research-question">
-                Are energy settings a systematic confounder between cancer and normal cases that AI models should correct for?
+                Can breast density (available in Mammo‑MX) be estimated from NLBS DICOM metadata without the explicit label?
               </div>
-              <div class="research-body">
-                <strong>Why it matters:</strong> If cancers are routinely imaged at slightly higher or lower keV than normals,
-                networks can shortcut via <em>exposure statistics</em> rather than tumour morphology, hurting robustness when
-                protocols change.<br/>
-                <strong>Next step:</strong> Compare energy distributions within age, breast, and view strata and,
-                where confounding is present, train models with explicit energy conditioning or adversarial debiasing to
-                test whether performance generalises across keV shifts.
-              </div>
+              <p class="research-text"><span class="research-label">Why it matters:</span> Density is the most important missing variable in NLBS for building models that transfer to denser‑breasted populations.</p>
+              <p class="research-text"><span class="research-label">What data or method is needed:</span> Train a density estimator on Mammo‑MX (pixels and metadata), then apply it to NLBS DICOM statistics as a pseudo‑label.</p>
+              <p class="research-text"><span class="research-label">Connection to VAC Lab:</span> Leverages the lab&rsquo;s expertise in computational imaging and DICOM analysis to enrich NLBS without new annotations.</p>
             </div>
 
-            <div class="research-card">
-              <div class="research-tag">RQ3 · Clinically acceptable sensitivity</div>
+            <div class="research-card border-coral">
               <div class="research-question">
-                What is the minimum sensitivity threshold a model must achieve to be clinically useful given this dataset&apos;s ~1.25% cancer prevalence?
+                What minimum dataset size and age distribution would a Nigerian screening dataset need for clinically useful sensitivity?
               </div>
-              <div class="research-body">
-                <strong>Why it matters:</strong> At low prevalence, each additional missed cancer means many thousands of
-                women scanned; setting a <em>clinical floor</em> on sensitivity anchors development in real patient impact
-                rather than leaderboard gains.<br/>
-                <strong>Next step:</strong> Use the metrics slider above to explore how many cancers would be missed per
-                100k exams at different sensitivities, and collaborate with breast radiologists to agree a minimum operating
-                point (for example ≥95% sensitivity at ≥95% specificity) to target in prospective validation.
+              <p class="research-text"><span class="research-label">Why it matters:</span> Designing a Nigerian screening cohort requires justification of sample size and age targeting before costly data collection.</p>
+              <p class="research-text"><span class="research-label">What data or method is needed:</span> Power analysis using the NLBS class‑imbalance framework, adapted to Nigerian prevalence and subtype mix.</p>
+              <p class="research-text"><span class="research-label">Connection to VAC Lab:</span> Builds directly on the NLBS dataset design methodology while centering an under‑served population.</p>
+            </div>
+
+            <div class="research-card border-amber">
+              <div class="research-question">
+                Is the false‑positive rate in NLBS associated with equipment variables independently of patient age?
               </div>
+              <p class="research-text"><span class="research-label">Why it matters:</span> If certain machine settings drive more false alarms, this bias is correctable both clinically and in AI training data.</p>
+              <p class="research-text"><span class="research-label">What data or method is needed:</span> Logistic regression on NLBS metadata: false‑positive outcome vs anode type and energy settings, adjusting for age.</p>
+              <p class="research-text"><span class="research-label">Connection to VAC Lab:</span> Immediately actionable using only the existing NLBS CSV and the lab&rsquo;s statistical modeling expertise&mdash;no images required.</p>
             </div>
           </div>
-        </div>
+
+          <footer>
+            Analysis prepared for PhD application to VAC Lab, Memorial University of Newfoundland.
+            Data sources: NLBS (Kendall et al. 2025), Mammo‑MX (2024), Effiong et al. (2025), GLOBOCAN 2022.
+          </footer>
+        </section>
       </div>
-    </section>
+    </main>
+  </div>
 
-  </main>
-</div>
+  <script>
+    // Global state
+    let nlbsRows = null;
+    let mxRows = null;
+    let charts = [];
 
-<script>
-  // Global state
-  let rawRows = [];
-  let processed = {
-    total: 0,
-    caseCounts: { Cancer: 0, "False Positive": 0, Normal: 0 },
-    anodeCaseCounts: {},
-    ageGroups: {},
-    energyByCase: {},
-    energyValuesByCase: {},
-    cancerCount: 0,
-    nonCancerCount: 0
-  };
-
-  // Chart instances to allow destruction on reload
-  const charts = {};
-
-  // Helpers
-  function deriveCaseType(cancerVal, htsnVal) {
-    const c = parseInt(cancerVal || "0", 10) || 0;
-    const h = parseInt(htsnVal || "0", 10) || 0;
-    if (c === 1) return "Cancer";
-    if (h === 1) return "False Positive";
-    return "Normal";
-  }
-
-  function toNumberSafe(val) {
-    if (val === undefined || val === null) return NaN;
-    const s = String(val).trim();
-    if (s === "" || s.toLowerCase() === "nan") return NaN;
-    const num = parseFloat(s);
-    return isNaN(num) ? NaN : num;
-  }
-
-  function binAge(age) {
-    if (isNaN(age)) return null;
-    if (age < 45) return null;
-    if (age <= 49) return "45–49";
-    if (age <= 54) return "50–54";
-    if (age <= 59) return "55–59";
-    if (age <= 64) return "60–64";
-    if (age <= 69) return "65–69";
-    if (age <= 74) return "70–74";
-    if (age <= 79) return "75–79";
-    return "80+";
-  }
-
-  function initProcessed() {
-    processed = {
-      total: 0,
-      caseCounts: { Cancer: 0, "False Positive": 0, Normal: 0 },
-      anodeCaseCounts: {},
-      ageGroups: {},
-      energyByCase: {
-        Cancer: [],
-        "False Positive": [],
-        Normal: []
-      },
-      energyValuesByCase: {
-        Cancer: {},
-        "False Positive": {},
-        Normal: {}
-      },
-      cancerCount: 0,
-      nonCancerCount: 0
+    const nigeriaAgeBands = {
+      labels: ["0-19", "20-39", "40-59", "60-79", "80+"],
+      percents: [2, 46, 34, 17, 1]
     };
-    const ageBands = ["45–49","50–54","55–59","60–64","65–69","70–74","75–79","80+"];
-    ageBands.forEach(b => {
-      processed.ageGroups[b] = {
-        total: 0,
-        caseCounts: { Cancer: 0, "False Positive": 0, Normal: 0 }
-      };
-    });
-  }
 
-  function processData(rows) {
-    initProcessed();
-    rawRows = rows;
+    const nigeriaSubtypePercents = {
+      tnbc: 42.77,
+      erpr: 36.87,
+      other: 20.36
+    };
 
-    rows.forEach(row => {
-      const cancerVal = row["Cancer"];
-      const htsnVal = row["Hard to State Negative"];
-      const caseType = deriveCaseType(cancerVal, htsnVal);
+    const westernSubtypePercents = {
+      tnbc: 15,
+      erpr: 65,
+      other: 20
+    };
 
-      processed.total += 1;
-      processed.caseCounts[caseType] = (processed.caseCounts[caseType] || 0) + 1;
-
-      const cInt = parseInt(cancerVal || "0", 10) || 0;
-      if (cInt === 1) {
-        processed.cancerCount += 1;
-      } else {
-        processed.nonCancerCount += 1;
-      }
-
-      // Anode material
-      const anodeRaw = row["Anode Target Material"] || "";
-      const anode = anodeRaw.toString().trim().toUpperCase() || "UNKNOWN";
-      if (!processed.anodeCaseCounts[anode]) {
-        processed.anodeCaseCounts[anode] = { Cancer: 0, "False Positive": 0, Normal: 0 };
-      }
-      processed.anodeCaseCounts[anode][caseType] += 1;
-
-      // Age
-      const ageVal = toNumberSafe(row["Age"]);
-      const ageBand = binAge(ageVal);
-      if (ageBand && processed.ageGroups[ageBand]) {
-        processed.ageGroups[ageBand].total += 1;
-        processed.ageGroups[ageBand].caseCounts[caseType] += 1;
-      }
-
-      // Energy settings
-      const energyVal = toNumberSafe(row["Energy Settings"]);
-      if (!isNaN(energyVal)) {
-        processed.energyByCase[caseType].push(energyVal);
-        const rounded = Math.round(energyVal);
-        if (!processed.energyValuesByCase[caseType][rounded]) {
-          processed.energyValuesByCase[caseType][rounded] = 0;
-        }
-        processed.energyValuesByCase[caseType][rounded] += 1;
-      }
-    });
-
-    updateOverview();
-    updateAgeCharts();
-    updateAnodeCharts();
-    updateEnergyCharts();
-    updateMetricsSection();
-  }
-
-  function formatPct(num) {
-    if (isNaN(num)) return "–";
-    return num.toFixed(1) + "%";
-  }
-
-  function safeDestroy(id) {
-    if (charts[id]) {
-      charts[id].destroy();
-      delete charts[id];
+    function showLoading(show) {
+      const loadingBanner = document.getElementById("loadingBanner");
+      if (!loadingBanner) return;
+      loadingBanner.style.display = show ? "flex" : "none";
     }
-  }
 
-  // SECTION 1
-  function updateOverview() {
-    const total = processed.total || 0;
-    const c = processed.caseCounts.Cancer || 0;
-    const fp = processed.caseCounts["False Positive"] || 0;
-    const n = processed.caseCounts.Normal || 0;
-
-    const cPct = total ? (c / total) * 100 : 0;
-    const fpPct = total ? (fp / total) * 100 : 0;
-    const nPct = total ? (n / total) * 100 : 0;
-
-    document.getElementById("statTotal").textContent = total.toLocaleString();
-    document.getElementById("statTotalSub").textContent = "Images with metadata";
-
-    document.getElementById("statCancer").textContent = c.toLocaleString();
-    document.getElementById("statCancerSub").textContent = cPct ? formatPct(cPct) + " of images" : "–";
-
-    document.getElementById("statFP").textContent = fp.toLocaleString();
-    document.getElementById("statFPSub").textContent = fpPct ? formatPct(fpPct) + " of images" : "–";
-
-    document.getElementById("statNormal").textContent = n.toLocaleString();
-    document.getElementById("statNormalSub").textContent = nPct ? formatPct(nPct) + " of images" : "–";
-
-    // Naive classifier card assuming binary cancer vs non‑cancer
-    const cancerCount = processed.cancerCount;
-    const nonCancerCount = processed.nonCancerCount;
-    const totalBinary = cancerCount + nonCancerCount || 1;
-
-    const cancerPrev = (cancerCount / totalBinary) * 100;
-    const nonCancerPrev = (nonCancerCount / totalBinary) * 100;
-    const naiveAcc = nonCancerPrev; // always predicts "non‑cancer"
-
-    document.getElementById("naiveCancerPrev").textContent = formatPct(cancerPrev);
-    document.getElementById("naiveNonCancerPrev").textContent = formatPct(nonCancerPrev);
-    document.getElementById("naiveAccuracy").textContent = formatPct(naiveAcc);
-
-    safeDestroy("overviewDonut");
-    const ctx = document.getElementById("overviewDonut").getContext("2d");
-    charts["overviewDonut"] = new Chart(ctx, {
-      type: "doughnut",
-      data: {
-        labels: ["Cancer", "False Positive", "Normal"],
-        datasets: [{
-          data: [c, fp, n],
-          backgroundColor: [getComputedStyle(document.documentElement).getPropertyValue("--cancer-color").trim(),
-            getComputedStyle(document.documentElement).getPropertyValue("--fp-color").trim(),
-            getComputedStyle(document.documentElement).getPropertyValue("--normal-color").trim()],
-          borderWidth: 1,
-          borderColor: "#ffffff"
-        }]
-      },
-      options: {
-        plugins: {
-          legend: {
-            position: "bottom",
-            labels: {
-              boxWidth: 12,
-              usePointStyle: true,
-              pointStyle: "circle"
-            }
-          },
-          tooltip: {
-            callbacks: {
-              label: function (ctx) {
-                const value = ctx.raw;
-                const pct = total ? (value / total) * 100 : 0;
-                return ctx.label + ": " + value.toLocaleString() + " (" + pct.toFixed(1) + "%)";
-              }
-            }
-          }
-        },
-        cutout: "65%"
+    function showSuccessBanner() {
+      const successBanner = document.getElementById("successBanner");
+      const successCounts = document.getElementById("successCounts");
+      if (successBanner && successCounts && nlbsRows && mxRows) {
+        successCounts.textContent = nlbsRows.length + " Canadian images + " + mxRows.length + " Mexican images ready.";
+        successBanner.style.display = "flex";
       }
-    });
-  }
+    }
 
-  // SECTION 2: Age
-  function updateAgeCharts() {
-    const ageBands = ["45–49","50–54","55–59","60–64","65–69","70–74","75–79","80+"];
-    const labels = ageBands;
-
-    const pctCancer = [];
-    const pctFP = [];
-    const pctNormal = [];
-
-    const rateCancer = [];
-    const rateFP = [];
-
-    ageBands.forEach(b => {
-      const group = processed.ageGroups[b];
-      const total = group ? group.total : 0;
-      const cc = group ? group.caseCounts.Cancer : 0;
-      const fp = group ? group.caseCounts["False Positive"] : 0;
-      const nn = group ? group.caseCounts.Normal : 0;
-
-      const pctC = total ? (cc / total) * 100 : 0;
-      const pctF = total ? (fp / total) * 100 : 0;
-      const pctN = total ? (nn / total) * 100 : 0;
-
-      pctCancer.push(pctC);
-      pctFP.push(pctF);
-      pctNormal.push(pctN);
-
-      // Rates per age band (same as percentages of band here)
-      rateCancer.push(pctC);
-      rateFP.push(pctF);
-    });
-
-    safeDestroy("ageGroupBars");
-    const ctx1 = document.getElementById("ageGroupBars").getContext("2d");
-    charts["ageGroupBars"] = new Chart(ctx1, {
-      type: "bar",
-      data: {
-        labels,
-        datasets: [
-          {
-            label: "Cancer %",
-            data: pctCancer,
-            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--cancer-color").trim()
-          },
-          {
-            label: "False positive %",
-            data: pctFP,
-            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--fp-color").trim()
-          },
-          {
-            label: "Normal %",
-            data: pctNormal,
-            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--normal-color").trim()
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          x: { stacked: false },
-          y: {
-            min: 0,
-            max: 100,
-            title: { display: true, text: "% of age group" }
-          }
-        },
-        plugins: {
-          legend: { position: "top" },
-          tooltip: {
-            callbacks: {
-              label: function (ctx) {
-                return ctx.dataset.label + ": " + ctx.raw.toFixed(1) + "%";
-              }
-            }
-          }
-        }
+    function enableOverviewStats() {
+      const overview = document.getElementById("overviewStats");
+      if (overview) {
+        overview.style.opacity = "1";
+        overview.style.pointerEvents = "auto";
       }
-    });
+    }
 
-    // Cancer rate line
-    safeDestroy("ageRatesCancer");
-    const ctx2 = document.getElementById("ageRatesCancer").getContext("2d");
-    charts["ageRatesCancer"] = new Chart(ctx2, {
-      type: "line",
-      data: {
-        labels,
-        datasets: [{
-          label: "Cancer rate",
-          data: rateCancer,
-          borderColor: getComputedStyle(document.documentElement).getPropertyValue("--cancer-color").trim(),
-          backgroundColor: "rgba(226,75,74,0.12)",
-          tension: 0.25,
-          fill: true,
-          pointRadius: 3
-        }]
-      },
-      options: {
-        scales: {
-          y: {
-            min: 0,
-            title: { display: true, text: "Cancer cases per age group (%)" }
-          }
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: function (ctx) {
-                return "Cancer rate: " + ctx.raw.toFixed(2) + "%";
-              }
-            }
-          }
-        }
-      }
-    });
+    function round1(value) {
+      if (!isFinite(value)) return 0;
+      return Math.round(value * 10) / 10;
+    }
 
-    // FP rate line
-    safeDestroy("ageRatesFP");
-    const ctx3 = document.getElementById("ageRatesFP").getContext("2d");
-    charts["ageRatesFP"] = new Chart(ctx3, {
-      type: "line",
-      data: {
-        labels,
-        datasets: [{
-          label: "False positive rate",
-          data: rateFP,
-          borderColor: getComputedStyle(document.documentElement).getPropertyValue("--fp-color").trim(),
-          backgroundColor: "rgba(239,159,39,0.12)",
-          tension: 0.25,
-          fill: true,
-          pointRadius: 3
-        }]
-      },
-      options: {
-        scales: {
-          y: {
-            min: 0,
-            title: { display: true, text: "False positives per age group (%)" }
-          }
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: function (ctx) {
-                return "False positive rate: " + ctx.raw.toFixed(2) + "%";
-              }
-            }
-          }
-        }
-      }
-    });
-  }
+    function safeNumber(val) {
+      const num = typeof val === "number" ? val : parseFloat(val);
+      return isNaN(num) ? null : num;
+    }
 
-  // SECTION 3: Equipment / Anode
-  function updateAnodeCharts() {
-    const anodeNames = Object.keys(processed.anodeCaseCounts).sort();
-    const cancerCounts = [];
-    const fpCounts = [];
-    const normalCounts = [];
+    function deriveNlbsCaseType(row) {
+      const cancer = Number(row["Cancer"]);
+      const hardNeg = Number(row["Hard to State Negative"]);
+      if (cancer === 1) return "Cancer";
+      if (cancer !== 1 && hardNeg === 1) return "False Positive";
+      return "Normal";
+    }
 
-    const fpRates = [];
-    const cancerRates = [];
-    const normalRates = [];
+    function deriveMxOutcome(row) {
+      const birads = String(row["BIRADS"] || "").trim().toUpperCase();
+      if (birads === "B4" || birads === "B5") return "Suspicious/Malignant";
+      if (birads === "B1" || birads === "B2" || birads === "B3") return "Benign/Negative";
+      return "Other";
+    }
 
-    anodeNames.forEach(name => {
-      const obj = processed.anodeCaseCounts[name];
-      const c = obj.Cancer || 0;
-      const fp = obj["False Positive"] || 0;
-      const n = obj.Normal || 0;
-      const total = c + fp + n || 1;
+    function ageBand(age) {
+      if (age == null || !isFinite(age)) return null;
+      if (age < 20) return "0-19";
+      if (age < 40) return "20-39";
+      if (age < 60) return "40-59";
+      if (age < 80) return "60-79";
+      return "80+";
+    }
 
-      cancerCounts.push(c);
-      fpCounts.push(fp);
-      normalCounts.push(n);
+    function computeSummaryStats() {
+      if (!nlbsRows || !mxRows) return;
 
-      cancerRates.push((c / total) * 100);
-      fpRates.push((fp / total) * 100);
-      normalRates.push((n / total) * 100);
-    });
-
-    safeDestroy("anodeCounts");
-    const ctx1 = document.getElementById("anodeCounts").getContext("2d");
-    charts["anodeCounts"] = new Chart(ctx1, {
-      type: "bar",
-      data: {
-        labels: anodeNames,
-        datasets: [
-          {
-            label: "Cancer",
-            data: cancerCounts,
-            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--cancer-color").trim()
-          },
-          {
-            label: "False positive",
-            data: fpCounts,
-            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--fp-color").trim()
-          },
-          {
-            label: "Normal",
-            data: normalCounts,
-            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--normal-color").trim()
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          x: { stacked: false },
-          y: {
-            beginAtZero: true,
-            title: { display: true, text: "Number of images" }
-          }
-        },
-        plugins: {
-          legend: { position: "top" }
-        }
-      }
-    });
-
-    safeDestroy("anodeStacked");
-    const ctx2 = document.getElementById("anodeStacked").getContext("2d");
-    charts["anodeStacked"] = new Chart(ctx2, {
-      type: "bar",
-      data: {
-        labels: anodeNames,
-        datasets: [
-          {
-            label: "Cancer %",
-            data: cancerRates,
-            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--cancer-color").trim(),
-            stack: "stack1"
-          },
-          {
-            label: "False positive %",
-            data: fpRates,
-            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--fp-color").trim(),
-            stack: "stack1"
-          },
-          {
-            label: "Normal %",
-            data: normalRates,
-            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--normal-color").trim(),
-            stack: "stack1"
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          x: { stacked: true },
-          y: {
-            stacked: true,
-            min: 0,
-            max: 100,
-            title: { display: true, text: "Percentage within anode material" }
-          }
-        },
-        plugins: {
-          legend: { position: "top" },
-          tooltip: {
-            callbacks: {
-              label: function (ctx) {
-                return ctx.dataset.label + ": " + ctx.raw.toFixed(1) + "%";
-              }
-            }
-          }
-        }
-      }
-    });
-
-    // Insight text: compare max/min FP rate
-    let insightText = "Once the CSV is loaded, this text will summarise whether false positive rates differ substantially across anode materials, helping you decide if equipment configuration may be an important confounder.";
-    if (anodeNames.length > 0) {
-      let maxRate = -1, maxName = "";
-      let minRate = 101, minName = "";
-      anodeNames.forEach((name, idx) => {
-        const rate = fpRates[idx];
-        if (!isNaN(rate)) {
-          if (rate > maxRate) { maxRate = rate; maxName = name; }
-          if (rate < minRate) { minRate = rate; minName = name; }
-        }
+      // NLBS stats
+      const nlbsTotal = nlbsRows.length;
+      let cancerCount = 0;
+      let fpCount = 0;
+      nlbsRows.forEach((row) => {
+        const type = deriveNlbsCaseType(row);
+        if (type === "Cancer") cancerCount++;
+        else if (type === "False Positive") fpCount++;
       });
-      if (maxRate >= 0 && minRate <= 100) {
-        const diff = maxRate - minRate;
-        insightText =
-          "In this cohort, the highest false positive proportion is observed for " + maxName +
-          " (" + maxRate.toFixed(1) + "% of its exams), while " + minName +
-          " has the lowest (" + minRate.toFixed(1) + "%). A spread of about " +
-          diff.toFixed(1) + " percentage points suggests that anode material " +
-          (diff > 5 ? "may be an important driver of recall variation that AI models must be robust to."
-                    : "has a relatively modest association with recall, though machine‑level effects should still be checked in site‑specific analyses.");
-      }
-    }
-    document.getElementById("anodeInsight").textContent = insightText;
-  }
 
-  // SECTION 4: Energy settings
-  function computeStats(arr) {
-    if (!arr || arr.length === 0) return { min: NaN, mean: NaN, max: NaN };
-    const sorted = [...arr].sort((a, b) => a - b);
-    const min = sorted[0];
-    const max = sorted[sorted.length - 1];
-    const sum = arr.reduce((acc, v) => acc + v, 0);
-    const mean = sum / arr.length;
-    return { min, mean, max };
-  }
+      document.getElementById("nlbsTotal").textContent = nlbsTotal.toLocaleString();
+      document.getElementById("nlbsCancerCount").textContent = cancerCount.toLocaleString();
+      document.getElementById("nlbsFPCount").textContent = fpCount.toLocaleString();
 
-  function updateEnergyCharts() {
-    const caseTypes = ["Cancer", "False Positive", "Normal"];
-    const mins = [];
-    const means = [];
-    const maxs = [];
+      const cancerPct = nlbsTotal ? round1((cancerCount / nlbsTotal) * 100) : 0;
+      const fpPct = nlbsTotal ? round1((fpCount / nlbsTotal) * 100) : 0;
+      document.getElementById("nlbsCancerPct").textContent = cancerPct + "% of NLBS images";
+      document.getElementById("nlbsFPPct").textContent = fpPct + "% of NLBS images";
 
-    caseTypes.forEach(ct => {
-      const stats = computeStats(processed.energyByCase[ct]);
-      mins.push(stats.min);
-      means.push(stats.mean);
-      maxs.push(stats.max);
-    });
+      // Mammo-MX stats
+      const mxTotal = mxRows.length;
+      let suspCount = 0;
+      let benignCount = 0;
+      mxRows.forEach((row) => {
+        const outcome = deriveMxOutcome(row);
+        if (outcome === "Suspicious/Malignant") suspCount++;
+        else if (outcome === "Benign/Negative") benignCount++;
+      });
 
-    // Approx "box" as three grouped bars
-    safeDestroy("energySummary");
-    const ctx1 = document.getElementById("energySummary").getContext("2d");
-    charts["energySummary"] = new Chart(ctx1, {
-      type: "bar",
-      data: {
-        labels: caseTypes,
-        datasets: [
-          {
-            label: "Min keV",
-            data: mins,
-            backgroundColor: "#cbd5f5"
-          },
-          {
-            label: "Mean keV",
-            data: means,
-            backgroundColor: "#6366f1"
-          },
-          {
-            label: "Max keV",
-            data: maxs,
-            backgroundColor: "#1e293b"
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: false,
-            title: { display: true, text: "Energy (keV)" }
-          }
-        },
-        plugins: {
-          legend: { position: "top" },
-          tooltip: {
-            callbacks: {
-              label: function (ctx) {
-                return ctx.dataset.label + ": " + ctx.raw.toFixed(1) + " keV";
-              }
-            }
-          }
-        }
-      }
-    });
+      document.getElementById("mxTotal").textContent = mxTotal.toLocaleString();
+      document.getElementById("mxSuspCount").textContent = suspCount.toLocaleString();
+      document.getElementById("mxBenignCount").textContent = benignCount.toLocaleString();
 
-    // Distribution 25-31 per case type
-    const energyValues = [25,26,27,28,29,30,31];
-    const distCancer = [];
-    const distFP = [];
-    const distNormal = [];
-
-    energyValues.forEach(ev => {
-      distCancer.push(processed.energyValuesByCase.Cancer[ev] || 0);
-      distFP.push(processed.energyValuesByCase["False Positive"][ev] || 0);
-      distNormal.push(processed.energyValuesByCase.Normal[ev] || 0);
-    });
-
-    safeDestroy("energyDistribution");
-    const ctx2 = document.getElementById("energyDistribution").getContext("2d");
-    charts["energyDistribution"] = new Chart(ctx2, {
-      type: "bar",
-      data: {
-        labels: energyValues.map(v => v + " keV"),
-        datasets: [
-          {
-            label: "Cancer",
-            data: distCancer,
-            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--cancer-color").trim()
-          },
-          {
-            label: "False positive",
-            data: distFP,
-            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--fp-color").trim()
-          },
-          {
-            label: "Normal",
-            data: distNormal,
-            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--normal-color").trim()
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          x: { stacked: false },
-          y: {
-            beginAtZero: true,
-            title: { display: true, text: "Number of images" }
-          }
-        },
-        plugins: {
-          legend: { position: "top" }
-        }
-      }
-    });
-
-    // Insight text: compare mean energy cancer vs normal
-    const meanCancer = means[0];
-    const meanNormal = means[2];
-    let insight = "After loading the CSV, this note will highlight whether cancer exams cluster at particular keV levels compared with normal and false positive exams.";
-    if (!isNaN(meanCancer) && !isNaN(meanNormal)) {
-      const diff = meanCancer - meanNormal;
-      if (Math.abs(diff) < 0.05) {
-        insight =
-          "In this cohort, mean energy for cancer exams (" + meanCancer.toFixed(2) +
-          " keV) is almost identical to that of normal exams (" + meanNormal.toFixed(2) +
-          " keV), suggesting limited direct confounding from energy settings alone.";
-      } else if (diff > 0) {
-        insight =
-          "Cancer exams are, on average, acquired at slightly higher energy (" + meanCancer.toFixed(2) +
-          " keV) than normal exams (" + meanNormal.toFixed(2) +
-          " keV). This shift could allow models to partially detect cancer via exposure cues unless controlled for.";
-      } else {
-        insight =
-          "Cancer exams are, on average, acquired at slightly lower energy (" + meanCancer.toFixed(2) +
-          " keV) than normal exams (" + meanNormal.toFixed(2) +
-          " keV). Such protocol differences may act as a confounder that robust models should explicitly handle.";
-      }
-    }
-    document.getElementById("energyInsight").textContent = insight;
-  }
-
-  // SECTION 5: Metrics explainer
-  function updateMetricsSection() {
-    const cancerCount = processed.cancerCount;
-    const nonCancerCount = processed.nonCancerCount;
-    const total = cancerCount + nonCancerCount || 1;
-    const cancerPrev = cancerCount / total;
-    const nonCancerPrev = nonCancerCount / total;
-
-    document.getElementById("metricCancerPrev").textContent = formatPct(cancerPrev * 100);
-    document.getElementById("metricNonCancerPrev").textContent = formatPct(nonCancerPrev * 100);
-
-    // Also refresh naive values which depend on dataset
-    const naiveAcc = nonCancerPrev * 100;
-    document.getElementById("naiveCancerPrev").textContent = formatPct(cancerPrev * 100);
-    document.getElementById("naiveNonCancerPrev").textContent = formatPct(nonCancerPrev * 100);
-    document.getElementById("naiveAccuracy").textContent = formatPct(naiveAcc);
-
-    applySensitivitySlider();
-  }
-
-  function applySensitivitySlider() {
-    const slider = document.getElementById("sensitivitySlider");
-    const sVal = slider ? parseInt(slider.value, 10) : 80;
-    document.getElementById("sensitivityLabel").textContent = sVal + "%";
-
-    const cancerCount = processed.cancerCount;
-    const nonCancerCount = processed.nonCancerCount;
-    const total = cancerCount + nonCancerCount || 1;
-    const cancerPrev = cancerCount / total;
-    const nonCancerPrev = nonCancerCount / total;
-
-    const sens = sVal / 100;
-    // Simple illustrative ROC: specificity decreases approximately linearly with sensitivity
-    let spec = 1 - 0.8 * sens;
-    if (spec < 0) spec = 0;
-    if (spec > 1) spec = 1;
-
-    const fnr = 1 - sens;
-    const fpr = 1 - spec;
-    const acc = sens * cancerPrev + spec * nonCancerPrev;
-
-    document.getElementById("metricSens").textContent = formatPct(sens * 100);
-    document.getElementById("metricSpec").textContent = formatPct(spec * 100);
-    document.getElementById("metricFPR").textContent = formatPct(fpr * 100);
-    document.getElementById("metricFNR").textContent = formatPct(fnr * 100);
-    document.getElementById("metricAcc").textContent = formatPct(acc * 100);
-  }
-
-  function parseCsvAndRender(csvInput, sourceLabel) {
-    const statusEl = document.getElementById("fileStatus");
-    Papa.parse(csvInput, {
-      header: true,
-      dynamicTyping: false,
-      skipEmptyLines: true,
-      complete: function (results) {
-        const rows = results.data || [];
-        processData(rows);
-        statusEl.textContent = "Loaded " + sourceLabel + " (" + rows.length.toLocaleString() + " rows)";
-        statusEl.classList.add("ready");
-      },
-      error: function (err) {
-        console.error(err);
-        statusEl.textContent = "Failed to parse " + sourceLabel + ": " + err.message;
-        statusEl.classList.remove("ready");
-      }
-    });
-  }
-
-  async function tryAutoLoadHostedCsv() {
-    const statusEl = document.getElementById("fileStatus");
-    const hostedPath = "/NLBSD_Metadata.csv";
-    statusEl.textContent = "Trying hosted " + hostedPath + "…";
-    statusEl.classList.remove("ready");
-
-    try {
-      const response = await fetch(hostedPath, { cache: "no-store" });
-      if (!response.ok) {
-        throw new Error("HTTP " + response.status);
-      }
-      const csvText = await response.text();
-      parseCsvAndRender(csvText, "hosted NLBSD_Metadata.csv");
-    } catch (err) {
-      console.warn("Auto-load unavailable, falling back to manual upload:", err);
-      statusEl.innerHTML = "Hosted <code>NLBSD_Metadata.csv</code> not found. Please use <strong>Load CSV</strong>.";
-      statusEl.classList.remove("ready");
-    }
-  }
-
-  // File input handling
-  document.getElementById("csvFileInput").addEventListener("change", function (e) {
-    const file = e.target.files[0];
-    const statusEl = document.getElementById("fileStatus");
-    if (!file) {
-      statusEl.textContent = "No file selected.";
-      statusEl.classList.remove("ready");
-      return;
+      const suspPct = mxTotal ? round1((suspCount / mxTotal) * 100) : 0;
+      const benignPct = mxTotal ? round1((benignCount / mxTotal) * 100) : 0;
+      document.getElementById("mxSuspPct").textContent = suspPct + "% of Mammo‑MX images";
+      document.getElementById("mxBenignPct").textContent = benignPct + "% of Mammo‑MX images";
     }
 
-    statusEl.textContent = "Parsing " + file.name + "…";
-    statusEl.classList.remove("ready");
-    parseCsvAndRender(file, file.name);
-  });
+    function computeAgeDistributions() {
+      const bands = ["0-19", "20-39", "40-59", "60-79", "80+"];
+      const nlbsCounts = { "0-19": 0, "20-39": 0, "40-59": 0, "60-79": 0, "80+": 0 };
+      const mxCounts = { "0-19": 0, "20-39": 0, "40-59": 0, "60-79": 0, "80+": 0 };
 
-  document.getElementById("sensitivitySlider").addEventListener("input", applySensitivitySlider);
+      nlbsRows.forEach((row) => {
+        const ageVal = safeNumber(row["Age"]);
+        const band = ageBand(ageVal);
+        if (band && nlbsCounts[band] != null) nlbsCounts[band]++;
+      });
+      mxRows.forEach((row) => {
+        const ageVal = safeNumber(row["Patient Age"]);
+        const band = ageBand(ageVal);
+        if (band && mxCounts[band] != null) mxCounts[band]++;
+      });
 
-  // Sidebar navigation scroll
-  document.querySelectorAll(".nav-item").forEach(item => {
-    item.addEventListener("click", () => {
-      const targetId = item.getAttribute("data-target");
-      if (targetId) {
-        const section = document.getElementById(targetId);
-        if (section) {
-          section.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }
-      document.querySelectorAll(".nav-item").forEach(i => i.classList.remove("active"));
-      item.classList.add("active");
-    });
-  });
+      const nlbsTotal = Object.values(nlbsCounts).reduce((a, b) => a + b, 0) || 1;
+      const mxTotal = Object.values(mxCounts).reduce((a, b) => a + b, 0) || 1;
 
-  // Keep active nav item in sync with scroll
-  const sectionIds = ["section-overview", "section-age", "section-equipment", "section-energy", "section-metrics", "section-research"];
-  const sectionElements = sectionIds.map(id => document.getElementById(id));
+      const nlbsPercents = bands.map((b) => round1((nlbsCounts[b] / nlbsTotal) * 100));
+      const mxPercents = bands.map((b) => round1((mxCounts[b] / mxTotal) * 100));
+      const ngPercents = nigeriaAgeBands.percents.map((v) => round1(v));
 
-  window.addEventListener("scroll", () => {
-    let currentId = null;
-    const offset = 100;
-    sectionElements.forEach(sec => {
-      if (!sec) return;
-      const rect = sec.getBoundingClientRect();
-      if (rect.top <= offset && rect.bottom > offset) {
-        currentId = sec.id;
-      }
-    });
-    if (currentId) {
-      document.querySelectorAll(".nav-item").forEach(item => {
-        const targetId = item.getAttribute("data-target");
-        if (targetId === currentId) {
-          item.classList.add("active");
+      return { bands, nlbsPercents, mxPercents, ngPercents };
+    }
+
+    function computeAgeBoxApprox() {
+      const groups = [
+        { key: "nlbs_normal", label: "NLBS normal", filter: (r) => deriveNlbsCaseType(r) === "Normal", source: "nlbs" },
+        { key: "nlbs_fp", label: "NLBS false positive", filter: (r) => deriveNlbsCaseType(r) === "False Positive", source: "nlbs" },
+        { key: "nlbs_cancer", label: "NLBS cancer", filter: (r) => deriveNlbsCaseType(r) === "Cancer", source: "nlbs" },
+        { key: "mx_benign", label: "Mammo‑MX benign/negative", filter: (r) => deriveMxOutcome(r) === "Benign/Negative", source: "mx" },
+        { key: "mx_susp", label: "Mammo‑MX suspicious/malignant", filter: (r) => deriveMxOutcome(r) === "Suspicious/Malignant", source: "mx" }
+      ];
+
+      const mins = [];
+      const means = [];
+      const maxs = [];
+      const labels = [];
+
+      groups.forEach((g) => {
+        const rows = g.source === "nlbs" ? nlbsRows : mxRows;
+        const ages = [];
+        rows.forEach((row) => {
+          if (g.filter(row)) {
+            const ageVal = safeNumber(g.source === "nlbs" ? row["Age"] : row["Patient Age"]);
+            if (ageVal != null) ages.push(ageVal);
+          }
+        });
+        if (ages.length === 0) {
+          labels.push(g.label);
+          mins.push(0);
+          means.push(0);
+          maxs.push(0);
         } else {
-          item.classList.remove("active");
+          labels.push(g.label);
+          const minAge = Math.min(...ages);
+          const maxAge = Math.max(...ages);
+          const meanAge = ages.reduce((a, b) => a + b, 0) / ages.length;
+          mins.push(round1(minAge));
+          means.push(round1(meanAge));
+          maxs.push(round1(maxAge));
+        }
+      });
+
+      return { labels, mins, means, maxs };
+    }
+
+    function computeDensityOutcome() {
+      const densities = ["D1", "D2", "D3", "D4"];
+      const benignCounts = { D1: 0, D2: 0, D3: 0, D4: 0 };
+      const suspCounts = { D1: 0, D2: 0, D3: 0, D4: 0 };
+
+      mxRows.forEach((row) => {
+        const density = String(row["Breast Density"] || "").trim().toUpperCase();
+        if (!densities.includes(density)) return;
+        const outcome = deriveMxOutcome(row);
+        if (outcome === "Benign/Negative") benignCounts[density]++;
+        else if (outcome === "Suspicious/Malignant") suspCounts[density]++;
+      });
+
+      const benignVals = densities.map((d) => benignCounts[d]);
+      const suspVals = densities.map((d) => suspCounts[d]);
+      return { densities, benignVals, suspVals };
+    }
+
+    function computeDoseByDensity() {
+      const densities = ["D1", "D2", "D3", "D4"];
+      const sums = { D1: 0, D2: 0, D3: 0, D4: 0 };
+      const counts = { D1: 0, D2: 0, D3: 0, D4: 0 };
+
+      mxRows.forEach((row) => {
+        const density = String(row["Breast Density"] || "").trim().toUpperCase();
+        if (!densities.includes(density)) return;
+        const dose = safeNumber(row["EntranceDoseInmGy"]);
+        if (dose == null) return;
+        sums[density] += dose;
+        counts[density]++;
+      });
+
+      const means = densities.map((d) => {
+        if (!counts[d]) return 0;
+        return round1(sums[d] / counts[d]);
+      });
+      return { densities, means };
+    }
+
+    function computeAnodeByCase() {
+      const materials = ["RHODIUM", "MOLYBDENUM", "TUNGSTEN"];
+      const caseTypes = ["Normal", "False Positive", "Cancer"];
+      const counts = {};
+      materials.forEach((m) => {
+        counts[m] = { "Normal": 0, "False Positive": 0, "Cancer": 0 };
+      });
+
+      nlbsRows.forEach((row) => {
+        let material = String(row["Anode Target Material"] || "").trim().toUpperCase();
+        if (!materials.includes(material)) return;
+        const type = deriveNlbsCaseType(row);
+        if (caseTypes.includes(type)) counts[material][type]++;
+      });
+
+      const datasets = caseTypes.map((ct) => {
+        return materials.map((m) => counts[m][ct]);
+      });
+
+      return { materials, caseTypes, datasets };
+    }
+
+    function computeEnergyByCase() {
+      const energiesSet = new Set();
+      nlbsRows.forEach((row) => {
+        const e = safeNumber(row["Energy Settings"]);
+        if (e != null) energiesSet.add(e);
+      });
+      const energies = Array.from(energiesSet).sort((a, b) => a - b);
+      const caseTypes = ["Normal", "False Positive", "Cancer"];
+      const counts = {};
+      energies.forEach((e) => {
+        counts[e] = { "Normal": 0, "False Positive": 0, "Cancer": 0 };
+      });
+
+      nlbsRows.forEach((row) => {
+        const e = safeNumber(row["Energy Settings"]);
+        if (e == null || !counts[e]) return;
+        const type = deriveNlbsCaseType(row);
+        if (caseTypes.includes(type)) counts[e][type]++;
+      });
+
+      const datasets = caseTypes.map((ct) => energies.map((e) => counts[e][ct]));
+      return { energies, caseTypes, datasets };
+    }
+
+    function destroyExistingCharts() {
+      charts.forEach((c) => {
+        if (c && typeof c.destroy === "function") c.destroy();
+      });
+      charts = [];
+    }
+
+    function createLegend(containerId, items) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = "";
+      items.forEach((item) => {
+        const div = document.createElement("div");
+        div.className = "legend-item";
+        const color = document.createElement("span");
+        color.className = "legend-color";
+        color.style.backgroundColor = item.color;
+        const label = document.createElement("span");
+        label.className = "legend-label";
+        label.textContent = item.label;
+        div.appendChild(color);
+        div.appendChild(label);
+        container.appendChild(div);
+      });
+    }
+
+    function renderCharts() {
+      if (!nlbsRows || !mxRows) return;
+      destroyExistingCharts();
+
+      // SECTION 2: Age distributions
+      const ageData = computeAgeDistributions();
+      const ageCtx = document.getElementById("ageGroupChart").getContext("2d");
+      const ageChart = new Chart(ageCtx, {
+        type: "bar",
+        data: {
+          labels: ageData.bands,
+          datasets: [
+            {
+              label: "NLBS Canada",
+              data: ageData.nlbsPercents,
+              backgroundColor: "rgba(59, 139, 212, 0.8)"
+            },
+            {
+              label: "Mammo‑MX Mexico",
+              data: ageData.mxPercents,
+              backgroundColor: "rgba(216, 90, 48, 0.8)"
+            },
+            {
+              label: "Nigeria Effiong 2025",
+              data: ageData.ngPercents,
+              backgroundColor: "rgba(226, 75, 74, 0.8)"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              stacked: false
+            },
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                callback: (value) => value + "%"
+              },
+              title: {
+                display: true,
+                text: "Percent of dataset"
+              }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ctx.dataset.label + ": " + round1(ctx.parsed.y) + "%"
+              }
+            }
+          }
+        }
+      });
+      charts.push(ageChart);
+      createLegend("ageGroupLegend", [
+        { label: "NLBS Canada (screening)", color: "#3B8BD4" },
+        { label: "Mammo‑MX Mexico (diagnostic)", color: "#D85A30" },
+        { label: "Nigeria Effiong 2025", color: "#E24B4A" }
+      ]);
+
+      // Age box approximation
+      const boxData = computeAgeBoxApprox();
+      const boxCtx = document.getElementById("ageBoxApproxChart").getContext("2d");
+      const boxChart = new Chart(boxCtx, {
+        type: "bar",
+        data: {
+          labels: boxData.labels,
+          datasets: [
+            {
+              label: "Min age",
+              data: boxData.mins,
+              backgroundColor: "rgba(148, 163, 184, 0.8)"
+            },
+            {
+              label: "Mean age",
+              data: boxData.means,
+              backgroundColor: "rgba(59, 139, 212, 0.8)"
+            },
+            {
+              label: "Max age",
+              data: boxData.maxs,
+              backgroundColor: "rgba(15, 23, 42, 0.8)"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              stacked: false
+            },
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: "Age (years)"
+              }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ctx.dataset.label + ": " + ctx.parsed.y + " years"
+              }
+            }
+          }
+        }
+      });
+      charts.push(boxChart);
+      createLegend("ageBoxLegend", [
+        { label: "Min age", color: "#94A3B8" },
+        { label: "Mean age", color: "#3B8BD4" },
+        { label: "Max age", color: "#0F172A" }
+      ]);
+
+      // SECTION 3: NLBS donut
+      const nlbsTypes = ["Normal", "False Positive", "Cancer"];
+      const nlbsCounts = { "Normal": 0, "False Positive": 0, "Cancer": 0 };
+      nlbsRows.forEach((row) => {
+        const type = deriveNlbsCaseType(row);
+        if (nlbsCounts[type] != null) nlbsCounts[type]++;
+      });
+      const nlbsDonutCtx = document.getElementById("nlbsDonutChart").getContext("2d");
+      const nlbsDonutChart = new Chart(nlbsDonutCtx, {
+        type: "doughnut",
+        data: {
+          labels: nlbsTypes,
+          datasets: [
+            {
+              data: nlbsTypes.map((t) => nlbsCounts[t]),
+              backgroundColor: [
+                "rgba(59, 139, 212, 0.8)",
+                "rgba(239, 159, 39, 0.9)",
+                "rgba(226, 75, 74, 0.9)"
+              ],
+              borderWidth: 1,
+              borderColor: "#ffffff"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  const label = ctx.label || "";
+                  const val = ctx.parsed;
+                  const total = nlbsRows.length || 1;
+                  const pct = round1((val / total) * 100);
+                  return label + ": " + val.toLocaleString() + " (" + pct + "%)";
+                }
+              }
+            }
+          },
+          cutout: "60%"
+        }
+      });
+      charts.push(nlbsDonutChart);
+      createLegend("nlbsDonutLegend", [
+        { label: "Normal", color: "#3B8BD4" },
+        { label: "False positive", color: "#EF9F27" },
+        { label: "Cancer", color: "#E24B4A" }
+      ]);
+
+      // BIRADS bar chart
+      const biradsLabels = ["B0", "B1", "B2", "B3", "B4", "B5", "B6"];
+      const biradsCounts = { B0: 0, B1: 0, B2: 0, B3: 0, B4: 0, B5: 0, B6: 0 };
+      mxRows.forEach((row) => {
+        const b = String(row["BIRADS"] || "").trim().toUpperCase();
+        if (biradsCounts[b] != null) biradsCounts[b]++;
+      });
+      const biradsColors = {
+        B0: "#9CA3AF",
+        B1: "#16A34A",
+        B2: "#4ADE80",
+        B3: "#FACC15",
+        B4: "#FB923C",
+        B5: "#DC2626",
+        B6: "#7F1D1D"
+      };
+      const biradsCtx = document.getElementById("biradsBarChart").getContext("2d");
+      const biradsChart = new Chart(biradsCtx, {
+        type: "bar",
+        data: {
+          labels: biradsLabels,
+          datasets: [
+            {
+              label: "Count",
+              data: biradsLabels.map((b) => biradsCounts[b]),
+              backgroundColor: biradsLabels.map((b) => biradsColors[b])
+            }
+          ]
+        },
+        options: {
+          indexAxis: "y",
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => "Count: " + ctx.parsed.x.toLocaleString()
+              }
+            }
+          }
+        }
+      });
+      charts.push(biradsChart);
+      createLegend("biradsLegend", [
+        { label: "B0 Incomplete", color: biradsColors.B0 },
+        { label: "B1 Negative", color: biradsColors.B1 },
+        { label: "B2 Benign", color: biradsColors.B2 },
+        { label: "B3 Probably benign", color: biradsColors.B3 },
+        { label: "B4 Suspicious", color: biradsColors.B4 },
+        { label: "B5 Highly malignant", color: biradsColors.B5 },
+        { label: "B6 Known malignant", color: biradsColors.B6 }
+      ]);
+
+      // SECTION 4: Density vs outcome
+      const densityOutcome = computeDensityOutcome();
+      const densityCtx = document.getElementById("densityOutcomeChart").getContext("2d");
+      const densityChart = new Chart(densityCtx, {
+        type: "bar",
+        data: {
+          labels: densityOutcome.densities,
+          datasets: [
+            {
+              label: "Benign/negative (B1–B3)",
+              data: densityOutcome.benignVals,
+              backgroundColor: "rgba(59, 139, 212, 0.8)"
+            },
+            {
+              label: "Suspicious/malignant (B4–B5)",
+              data: densityOutcome.suspVals,
+              backgroundColor: "rgba(226, 75, 74, 0.9)"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              stacked: true
+            },
+            y: {
+              stacked: true,
+              beginAtZero: true,
+              ticks: { precision: 0 },
+              title: {
+                display: true,
+                text: "Number of exams"
+              }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ctx.dataset.label + ": " + ctx.parsed.y.toLocaleString()
+              }
+            }
+          }
+        }
+      });
+      charts.push(densityChart);
+      createLegend("densityOutcomeLegend", [
+        { label: "Benign/negative", color: "#3B8BD4" },
+        { label: "Suspicious/malignant", color: "#E24B4A" }
+      ]);
+
+      // Dose by density
+      const doseData = computeDoseByDensity();
+      const doseCtx = document.getElementById("doseByDensityChart").getContext("2d");
+      const doseChart = new Chart(doseCtx, {
+        type: "bar",
+        data: {
+          labels: doseData.densities,
+          datasets: [
+            {
+              label: "Mean entrance dose (mGy)",
+              data: doseData.means,
+              backgroundColor: "rgba(56, 189, 248, 0.9)"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: "Dose (mGy)"
+              }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => round1(ctx.parsed.y) + " mGy"
+              }
+            }
+          }
+        }
+      });
+      charts.push(doseChart);
+      createLegend("doseByDensityLegend", [
+        { label: "Mean entrance dose (mGy)", color: "#38BDF8" }
+      ]);
+
+      // NLBS anode by case
+      const anodeData = computeAnodeByCase();
+      const anodeCtx = document.getElementById("anodeCaseChart").getContext("2d");
+      const anodeChart = new Chart(anodeCtx, {
+        type: "bar",
+        data: {
+          labels: anodeData.materials,
+          datasets: [
+            {
+              label: "Normal",
+              data: anodeData.datasets[0],
+              backgroundColor: "rgba(59, 139, 212, 0.8)"
+            },
+            {
+              label: "False positive",
+              data: anodeData.datasets[1],
+              backgroundColor: "rgba(239, 159, 39, 0.9)"
+            },
+            {
+              label: "Cancer",
+              data: anodeData.datasets[2],
+              backgroundColor: "rgba(226, 75, 74, 0.9)"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { precision: 0 },
+              title: {
+                display: true,
+                text: "Number of images"
+              }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ctx.dataset.label + ": " + ctx.parsed.y.toLocaleString()
+              }
+            }
+          }
+        }
+      });
+      charts.push(anodeChart);
+      createLegend("anodeCaseLegend", [
+        { label: "Normal", color: "#3B8BD4" },
+        { label: "False positive", color: "#EF9F27" },
+        { label: "Cancer", color: "#E24B4A" }
+      ]);
+
+      // NLBS energy by case
+      const energyData = computeEnergyByCase();
+      const energyCtx = document.getElementById("energyCaseChart").getContext("2d");
+      const energyChart = new Chart(energyCtx, {
+        type: "bar",
+        data: {
+          labels: energyData.energies.map((e) => e + " keV"),
+          datasets: [
+            {
+              label: "Normal",
+              data: energyData.datasets[0],
+              backgroundColor: "rgba(59, 139, 212, 0.8)"
+            },
+            {
+              label: "False positive",
+              data: energyData.datasets[1],
+              backgroundColor: "rgba(239, 159, 39, 0.9)"
+            },
+            {
+              label: "Cancer",
+              data: energyData.datasets[2],
+              backgroundColor: "rgba(226, 75, 74, 0.9)"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { precision: 0 },
+              title: {
+                display: true,
+                text: "Number of images"
+              }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ctx.dataset.label + ": " + ctx.parsed.y.toLocaleString()
+              }
+            }
+          }
+        }
+      });
+      charts.push(energyChart);
+      createLegend("energyCaseLegend", [
+        { label: "Normal", color: "#3B8BD4" },
+        { label: "False positive", color: "#EF9F27" },
+        { label: "Cancer", color: "#E24B4A" }
+      ]);
+
+      // SECTION 5: Mortality ratio (static)
+      const mortalityCtx = document.getElementById("mortalityRatioChart").getContext("2d");
+      const mortalityChart = new Chart(mortalityCtx, {
+        type: "bar",
+        data: {
+          labels: ["Canada", "Mexico", "Nigeria"],
+          datasets: [
+            {
+              label: "Mortality-to-incidence ratio",
+              data: [0.15, 0.20, 0.51],
+              backgroundColor: [
+                "rgba(59, 139, 212, 0.8)",
+                "rgba(216, 90, 48, 0.8)",
+                "rgba(226, 75, 74, 0.9)"
+              ]
+            }
+          ]
+        },
+        options: {
+          indexAxis: "y",
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              beginAtZero: true,
+              max: 1,
+              ticks: {
+                callback: (val) => val.toFixed(2)
+              }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ctx.dataset.label + ": " + ctx.parsed.x.toFixed(2)
+              }
+            }
+          }
+        }
+      });
+      charts.push(mortalityChart);
+      createLegend("mortalityRatioLegend", [
+        { label: "Canada (0.15)", color: "#3B8BD4" },
+        { label: "Mexico (0.20)", color: "#D85A30" },
+        { label: "Nigeria (0.51)", color: "#E24B4A" }
+      ]);
+
+      // Subtype chart
+      const subtypeCtx = document.getElementById("subtypeChart").getContext("2d");
+      const subtypeChart = new Chart(subtypeCtx, {
+        type: "bar",
+        data: {
+          labels: ["TNBC", "ER+/PR+", "Other"],
+          datasets: [
+            {
+              label: "Nigeria",
+              data: [
+                round1(nigeriaSubtypePercents.tnbc),
+                round1(nigeriaSubtypePercents.erpr),
+                round1(nigeriaSubtypePercents.other)
+              ],
+              backgroundColor: "rgba(226, 75, 74, 0.9)"
+            },
+            {
+              label: "Western average",
+              data: [
+                westernSubtypePercents.tnbc,
+                westernSubtypePercents.erpr,
+                westernSubtypePercents.other
+              ],
+              backgroundColor: "rgba(55, 138, 221, 0.9)"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                callback: (value) => value + "%"
+              },
+              title: {
+                display: true,
+                text: "Percent of breast cancers"
+              }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ctx.dataset.label + ": " + round1(ctx.parsed.y) + "%"
+              }
+            }
+          }
+        }
+      });
+      charts.push(subtypeChart);
+      createLegend("subtypeLegend", [
+        { label: "Nigeria TNBC/ER+/PR+/other", color: "#E24B4A" },
+        { label: "Western TNBC/ER+/PR+/other", color: "#378ADD" }
+      ]);
+
+      // Stage at diagnosis donuts (combined chart with two datasets)
+      const stageCtx = document.getElementById("stageDonutChart").getContext("2d");
+      const stageChart = new Chart(stageCtx, {
+        type: "doughnut",
+        data: {
+          labels: ["Early (Stage I/II)", "Late (Stage III/IV)"],
+          datasets: [
+            {
+              label: "Nigeria",
+              data: [20, 80],
+              backgroundColor: ["#93C5FD", "#E24B4A"]
+            },
+            {
+              label: "Canada/West",
+              data: [60, 40],
+              backgroundColor: ["#3B82F6", "#F97316"]
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  const label = ctx.label || "";
+                  const val = ctx.parsed;
+                  return ctx.dataset.label + " " + label + ": " + val + "%";
+                }
+              }
+            }
+          },
+          cutout: "55"
+        }
+      });
+      charts.push(stageChart);
+      createLegend("stageDonutLegend", [
+        { label: "Nigeria early 20% / late 80%", color: "#E24B4A" },
+        { label: "Canada/West early 60% / late 40%", color: "#3B82F6" }
+      ]);
+    }
+
+    function tryRenderAll() {
+      if (!nlbsRows || !mxRows) return;
+      computeSummaryStats();
+      enableOverviewStats();
+      showLoading(false);
+      showSuccessBanner();
+      renderCharts();
+    }
+
+    function parseCsvFile(file, onComplete) {
+      if (!file) return;
+      showLoading(true);
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        dynamicTyping: false,
+        complete: function (results) {
+          showLoading(false);
+          if (results.errors && results.errors.length > 0) {
+            console.error("CSV parse errors:", results.errors);
+            alert("There were errors parsing " + file.name + ". Please check the console for details.");
+          }
+          onComplete(results.data || []);
         }
       });
     }
-  });
 
-  // Initialise metrics with empty dataset to avoid NaNs
-  initProcessed();
-  updateOverview();
-  updateAgeCharts();
-  updateAnodeCharts();
-  updateEnergyCharts();
-  updateMetricsSection();
-  tryAutoLoadHostedCsv();
-</script>
+    function parseCsvText(csvText, onComplete, onError) {
+      Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true,
+        dynamicTyping: false,
+        complete: function (results) {
+          onComplete(results.data || []);
+        },
+        error: function (err) {
+          console.error("CSV text parse error:", err);
+          if (onError) onError(err);
+        }
+      });
+    }
+
+    async function autoLoadHostedCSVs() {
+      const fileStatus = document.getElementById("fileStatus");
+      const endpoints = [
+        { id: "nlbs", path: "/NLBSD_Metadata.csv", label: "NLBS" },
+        { id: "mx", path: "/Mammo-MX_Metadata.csv", label: "Mammo‑MX" }
+      ];
+
+      fileStatus.textContent = "Trying hosted NLBSD_Metadata.csv and Mammo-MX_Metadata.csv…";
+      let anyLoaded = false;
+
+      for (let i = 0; i < endpoints.length; i++) {
+        const ep = endpoints[i];
+        try {
+          const resp = await fetch(ep.path, { cache: "no-store" });
+          if (!resp.ok) {
+            throw new Error("HTTP " + resp.status);
+          }
+          const text = await resp.text();
+          parseCsvText(text, (rows) => {
+            if (ep.id === "nlbs") {
+              nlbsRows = rows;
+            } else if (ep.id === "mx") {
+              mxRows = rows;
+            }
+          });
+          anyLoaded = true;
+        } catch (err) {
+          console.warn("Failed to auto-load", ep.path, err);
+        }
+      }
+
+      if (!anyLoaded) {
+        fileStatus.textContent = "Hosted CSVs not found. Please use the upload controls to load both datasets.";
+        return;
+      }
+
+      const parts = [];
+      if (nlbsRows) parts.push("NLBS loaded (" + nlbsRows.length + " rows)");
+      if (mxRows) parts.push("Mammo‑MX loaded (" + mxRows.length + " rows)");
+      fileStatus.textContent = parts.join(" · ");
+
+      tryRenderAll();
+    }
+
+    function initFileInputs() {
+      const nlbsInput = document.getElementById("nlbsInput");
+      const mxInput = document.getElementById("mxInput");
+      const fileStatus = document.getElementById("fileStatus");
+
+      function updateStatus() {
+        const nlbsLoaded = !!nlbsRows;
+        const mxLoaded = !!mxRows;
+        const parts = [];
+        if (nlbsLoaded) parts.push("NLBS loaded (" + nlbsRows.length + " rows)");
+        if (mxLoaded) parts.push("Mammo‑MX loaded (" + mxRows.length + " rows)");
+        fileStatus.textContent = parts.join(" · ");
+      }
+
+      nlbsInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        parseCsvFile(file, (rows) => {
+          nlbsRows = rows;
+          updateStatus();
+          tryRenderAll();
+        });
+      });
+
+      mxInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        parseCsvFile(file, (rows) => {
+          mxRows = rows;
+          updateStatus();
+          tryRenderAll();
+        });
+      });
+    }
+
+    function initSidebarNav() {
+      const links = document.querySelectorAll(".nav-link");
+      links.forEach((link) => {
+        link.addEventListener("click", (e) => {
+          e.preventDefault();
+          const targetId = link.getAttribute("href").substring(1);
+          const target = document.getElementById(targetId);
+          if (target) {
+            const top = target.getBoundingClientRect().top + window.pageYOffset - 12;
+            window.scrollTo({ top, behavior: "smooth" });
+          }
+          links.forEach((l) => l.classList.remove("active"));
+          link.classList.add("active");
+        });
+      });
+
+      const observerOptions = {
+        root: null,
+        rootMargin: "0px 0px -70% 0px",
+        threshold: 0
+      };
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            document.querySelectorAll(".nav-link").forEach((link) => {
+              if (link.getAttribute("href") === "#" + id) {
+                link.classList.add("active");
+              } else {
+                link.classList.remove("active");
+              }
+            });
+          }
+        });
+      }, observerOptions);
+
+      document.querySelectorAll("section").forEach((sec) => observer.observe(sec));
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initFileInputs();
+      initSidebarNav();
+      autoLoadHostedCSVs();
+    });
+  </script>
 </body>
 </html>
+
